@@ -12,7 +12,9 @@
     "build:dummy-app": "ng build dummy-app",
     "build": "npm run build:home && npm run build:average-price && npm run build:dummy-app",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "build:pages": "node scripts/build-pages.mjs",
+    "deploy": "npm run build:pages && ng deploy home"
   },
   "private": true,
   "packageManager": "npm@10.9.8",
@@ -30,6 +32,7 @@
     "@angular/build": "^22.2.5",
     "@angular/cli": "^22.1.4",
     "@angular/compiler-cli": "^22.1.0",
+    "angular-cli-ghpages": "^3.1.2",
     "concurrently": "^10.0.6",
     "jsdom": "^30.0.0",
     "prettier": "^3.8.1",

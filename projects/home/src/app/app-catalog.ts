@@ -22,7 +22,7 @@ export const UTILITY_APPS: UtilityApp[] = [
   },
 ];
 
-/** Dev: each app runs on its own port. Production: each app is served under /<path>/. */
+/** Dev: each app runs on its own port. Production: each app is served under <base href>/<path>/ (relative, so it works on any host path). */
 export function appUrl(app: UtilityApp): string {
-  return isDevMode() ? `http://localhost:${app.devPort}/` : `/${app.path}/`;
+  return isDevMode() ? `http://localhost:${app.devPort}/` : `${app.path}/`;
 }
