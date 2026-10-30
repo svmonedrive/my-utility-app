@@ -1,0 +1,63 @@
+{
+  "configVersion": 1,
+  "timestamp": 1793366541013,
+  "index": "/my-utility-app/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/my-utility-app/index.html",
+        "/my-utility-app/main-G3B7FEW2.js",
+        "/my-utility-app/manifest.webmanifest",
+        "/my-utility-app/styles-5INURTSO.css"
+      ],
+      "patterns": []
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/my-utility-app/icons/icon-128x128.png",
+        "/my-utility-app/icons/icon-144x144.png",
+        "/my-utility-app/icons/icon-152x152.png",
+        "/my-utility-app/icons/icon-192x192.png",
+        "/my-utility-app/icons/icon-384x384.png",
+        "/my-utility-app/icons/icon-512x512.png",
+        "/my-utility-app/icons/icon-72x72.png",
+        "/my-utility-app/icons/icon-96x96.png"
+      ],
+      "patterns": []
+    }
+  ],
+  "dataGroups": [],
+  "hashTable": {
+    "/my-utility-app/icons/icon-128x128.png": "db9c23e0c5d3692d1d8449c8cbd56045d16d25c6",
+    "/my-utility-app/icons/icon-144x144.png": "f85f447e099b62b354d2be83e2a15581fdd248a6",
+    "/my-utility-app/icons/icon-152x152.png": "f61c4c62ada7a66b9c4f54a52af5ae94961dcd06",
+    "/my-utility-app/icons/icon-192x192.png": "5e602f7aba2f4069359e16f8f41396bfbf772883",
+    "/my-utility-app/icons/icon-384x384.png": "54d222ac5221dae0344b3fb080b3b6aa0772eb43",
+    "/my-utility-app/icons/icon-512x512.png": "b77f1e1ac3a8ba61896efd402d25c9b9887c3deb",
+    "/my-utility-app/icons/icon-72x72.png": "422b9033980722a6b7aa3436bb27b53f0aba1475",
+    "/my-utility-app/icons/icon-96x96.png": "20cf89279d217ec926bfe240e85e16e700bcc25e",
+    "/my-utility-app/index.html": "5227b30d6159f0adeae43c9f404c9a1b7326d399",
+    "/my-utility-app/main-G3B7FEW2.js": "b1aa01f30479a80930db6aa5aaf72b5d9f7385b9",
+    "/my-utility-app/manifest.webmanifest": "685c927a222c65518899ee24f58122dd77f0b59e",
+    "/my-utility-app/styles-5INURTSO.css": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+  },
+  "navigationUrls": [
+    {
+      "positive": true,
+      "regex": "^\\/$"
+    }
+  ],
+  "navigationRequestStrategy": "performance"
+}
