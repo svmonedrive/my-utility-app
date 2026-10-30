@@ -1,0 +1,322 @@
+@use '../colors' as c;
+
+// Fills the space the page gives it; only the table body area scrolls, so the header row stays in view.
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.table-scroll {
+  flex: 1;
+  min-height: 0;
+  width: fit-content;
+  max-width: 100%;
+  overflow: auto;
+}
+
+// Separate borders (not collapsed) so the sticky header keeps its borders while scrolling.
+table {
+  width: fit-content;
+  border-collapse: separate;
+  border-spacing: 0;
+  // A double tap edits a row, so it must not also zoom the page.
+  touch-action: manipulation;
+}
+
+th,
+td {
+  padding: 0.6rem 0.8rem;
+  border: solid #d0d5dd;
+  border-width: 0 1px 1px 0;
+  text-align: left;
+}
+
+tr > :first-child {
+  border-left-width: 1px;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-top-width: 1px;
+  background: #f2f4f7;
+}
+
+// A light background per calendar month (Jan to Dec) of the buy date. Each month is 150deg around the
+// colour wheel from the previous one, so neighbouring months never look alike (Dec to Jan included).
+@for $i from 0 through 11 {
+  tbody tr.month-#{$i} {
+    background: hsl(($i * 150) % 360, 75%, 86%);
+  }
+}
+
+// Data columns are always as wide as an input, so the table does not resize when a row enters edit mode.
+th:not(.actions),
+td:not(.actions) {
+  min-width: 9rem;
+}
+
+// Room for the "Symbol" label with its filter dropdown beside it, so the column does not change
+// width when a row is edited.
+th.symbol,
+td.symbol {
+  min-width: 10.5rem;
+}
+
+select {
+  width: 100%;
+  padding: 0.3rem 0.4rem;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+// The Symbol filter in the header: compact, outlined like the Holding filter, filled when filtering.
+select.symbol-filter {
+  width: auto;
+  padding: 0.2rem 0.3rem;
+  border: 1px solid #1565c0;
+  border-radius: 6px;
+  background: #fff;
+  color: #1565c0;
+  cursor: pointer;
+
+  &.active {
+    background: #1565c0;
+    color: #fff;
+  }
+
+  // The open list keeps normal colours, even while the closed box is blue.
+  option {
+    background: #fff;
+    color: #101828;
+  }
+}
+
+// Price columns show the total with the price per item under it; the edit-mode inputs fill the same
+// width, so the table still does not resize when a row is edited.
+th.price,
+td.price {
+  min-width: 12rem;
+  white-space: nowrap;
+}
+
+// The small grey notes: "(Rs. 100/per item)" under a total, and the days notes in the sell date
+// cell. They share one slightly smaller size, so the main values stand out.
+.per-item,
+.days-over,
+.days-held {
+  color: #667085;
+  font-size: 0.85em;
+}
+
+.per-item {
+  margin-top: 0.1rem;
+}
+
+// Room for "(100 days over)" in an empty sell date cell, so the column does not change width when a
+// row is edited.
+th.sell-date,
+td.sell-date {
+  min-width: 10rem;
+  white-space: nowrap;
+}
+
+// Italic, for the notes in the sell date cell: "(x days over)" while not sold (instead of the date),
+// and "(23 days)" held under the date once sold. Colour and size are set with the other notes above.
+.days-over,
+.days-held {
+  font-style: italic;
+}
+
+.actions {
+  white-space: nowrap;
+  text-align: center;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.add {
+  padding: 0.4rem 0.9rem;
+  border: 0;
+  border-radius: 6px;
+  background: #1565c0;
+  color: #fff;
+
+  &:hover {
+    background: #0d47a1;
+  }
+}
+
+// "Sell date" header label with the Holding filter icon next to it.
+.th-with-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+// Icon-only toggle (Holding filter): outlined when off, filled when on.
+.filter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  padding: 0;
+  border: 1px solid #1565c0;
+  border-radius: 6px;
+  background: #fff;
+  color: #1565c0;
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:hover {
+    background: #e8f0fb;
+  }
+
+  &.active {
+    background: #1565c0;
+    color: #fff;
+
+    &:hover {
+      background: #0d47a1;
+    }
+  }
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #475467;
+
+  svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:hover {
+    background: #f2f4f7;
+  }
+
+  &.edit:hover {
+    color: #1565c0;
+  }
+
+  &.delete:hover {
+    color: #d92d20;
+  }
+}
+
+input {
+  width: 9rem;
+  padding: 0.3rem 0.4rem;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+input.invalid {
+  border-color: #d92d20;
+  outline-color: #d92d20;
+}
+
+// A typed date field plus the browser's date input behind it. The native input is invisible; it only
+// provides the calendar, which opens right under the typed field.
+.date-field {
+  position: relative;
+  width: 9rem;
+
+  .native-date {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 0;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+// "Rs." prefix next to a price input; fills the (wider) price column so the column does not resize.
+.money {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: 12rem;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+  }
+}
+
+.statistics {
+  cursor: default;
+}
+
+// Top bar (solid) = actual return; bottom bar (blue) = what a bank would have given. In each row the larger one fills the cell and the other is sized by its ratio to it.
+.bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+}
+
+.actual {
+  height: 0.55rem;
+  min-width: 3px;
+  border-radius: 999px;
+
+  &.ahead {
+    background: c.$ahead;
+  }
+
+  &.behind {
+    background: c.$behind;
+  }
+
+  &.loss {
+    background: c.$loss;
+  }
+
+  // Not sold yet: the same bar, but an empty dotted outline instead of a coloured fill.
+  &.pending {
+    box-sizing: border-box;
+    border: 2px dotted c.$pending;
+    background: transparent;
+  }
+}
+
+.bank {
+  height: 0.55rem;
+  min-width: 3px;
+  border-radius: 999px;
+  background: c.$bank;
+}

@@ -1,0 +1,81 @@
+@use '../colors' as c;
+
+.popover {
+  position: fixed;
+  z-index: 10;
+  // As wide as its content so no line breaks; only wraps when the content is wider than the screen.
+  width: max-content;
+  max-width: calc(100vw - 16px);
+  box-sizing: border-box;
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  background: #101828;
+  // Every line uses the same muted, slightly smaller text style.
+  color: #98a2b3;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+
+  &.below {
+    transform: translate(-50%, 0);
+  }
+}
+
+// The title, with a separator under it (the same line as the one above the summary).
+.popover-title {
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #667085;
+}
+
+// First line of the body: "Actual (...) vs Bank (...)".
+.popover-compare {
+  margin-bottom: 0.5rem;
+}
+
+.popover-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+
+  strong {
+    margin-left: auto;
+  }
+}
+
+.popover-summary {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #667085;
+}
+
+.swatch {
+  flex: none;
+  width: 0.9rem;
+  height: 0.55rem;
+  border-radius: 999px;
+
+  &.ahead {
+    background: c.$ahead;
+  }
+
+  &.behind {
+    background: c.$behind;
+  }
+
+  &.loss {
+    background: c.$loss;
+  }
+
+  &.bank {
+    background: c.$bank;
+  }
+
+  &.pending {
+    box-sizing: border-box;
+    border: 1.5px dotted c.$pending;
+  }
+}

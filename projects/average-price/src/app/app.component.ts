@@ -1,12 +1,10 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component } from '@angular/core';
+import { OrdersTableComponent } from './orders-table/orders-table.component';
 
 @Component({
-  imports: [RouterOutlet],
   selector: 'app-root',
+  imports: [OrdersTableComponent],
   styleUrl: './app.component.scss',
   templateUrl: './app.component.html',
 })
-export class AppComponent {
-  protected readonly title = signal('average-price');
-}
+export class AppComponent {}

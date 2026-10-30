@@ -1,0 +1,24 @@
+<div
+  #popover
+  class="popover"
+  role="tooltip"
+  [class.below]="below()"
+  [style.left.px]="left()"
+  [style.top.px]="top()"
+>
+  @if (details().title) {
+    <div class="popover-title">{{ details().title }}</div>
+  }
+  <div class="popover-compare">{{ details().comparison }}</div>
+  <div class="popover-row">
+    <span class="swatch" [class]="details().state"></span>
+    <span class="popover-name">Actual</span>
+    <strong>{{ details().actualText }}</strong>
+  </div>
+  <div class="popover-row">
+    <span class="swatch bank"></span>
+    <span class="popover-name">Bank ({{ bankRate }}% a year)</span>
+    <strong>{{ details().bankText }}</strong>
+  </div>
+  <div class="popover-summary">{{ details().summary }}</div>
+</div>

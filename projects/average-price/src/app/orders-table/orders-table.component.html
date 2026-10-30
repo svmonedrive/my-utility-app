@@ -1,0 +1,219 @@
+<div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th class="symbol">
+          <span class="th-with-filter">
+            Symbol
+            <select
+              class="symbol-filter"
+              name="symbolFilter"
+              aria-label="Filter by symbol"
+              title="Filter by symbol"
+              [class.active]="symbolFilter() !== allSymbols"
+              [ngModel]="symbolFilter()"
+              (ngModelChange)="symbolFilter.set($event)"
+            >
+              <option [value]="allSymbols">{{ allSymbols }}</option>
+              @for (symbol of symbols; track symbol) {
+                <option [value]="symbol">{{ symbol }}</option>
+              }
+            </select>
+          </span>
+        </th>
+        <th>Buy date</th>
+        <th class="price">Price</th>
+        <th>Quantity</th>
+        <th class="sell-date">
+          <span class="th-with-filter">
+            Sell date
+            <button
+              type="button"
+              class="filter"
+              [class.active]="onlyNotSold()"
+              [attr.aria-pressed]="onlyNotSold()"
+              aria-label="Holding: show only the orders not sold yet"
+              title="Holding: show only the orders not sold yet"
+              (click)="toggleNotSoldFilter()"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 5h16l-6 7v6l-4 2v-8L4 5z" />
+              </svg>
+            </button>
+          </span>
+        </th>
+        <th class="price">Price</th>
+        <th>Statistics</th>
+        <th class="actions">
+          <button type="button" class="add" (click)="addOrder()">Add order</button>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of visibleRows(); track row.id) {
+        <tr
+          [class]="monthClass(row.buyDate)"
+          (dblclick)="onRowDoubleClick($event, row.id)"
+          (pointerup)="onRowPointerUp($event, row.id)"
+          (mousedown)="onRowMouseDown($event, row.editing)"
+          (keydown.enter)="onRowEnter($event, row)"
+        >
+          @if (row.editing) {
+            <td class="symbol">
+              <select name="symbol" aria-label="Symbol" [(ngModel)]="row.symbol">
+                @for (symbol of symbols; track symbol) {
+                  <option [value]="symbol">{{ symbol }}</option>
+                }
+              </select>
+            </td>
+            <td>
+              <div class="date-field">
+                <input
+                  type="text"
+                  name="buyDate"
+                  placeholder="dd-MMM-yyyy"
+                  [(ngModel)]="row.buyDate"
+                  [class.invalid]="isInvalidDate(row.buyDate)"
+                  (click)="openCalendar(buyPicker, row.buyDate)"
+                  (blur)="normalizeDate(row, 'buyDate')"
+                />
+                <input
+                  #buyPicker
+                  type="date"
+                  class="native-date"
+                  tabindex="-1"
+                  aria-hidden="true"
+                  (change)="pickDate(row, 'buyDate', buyPicker)"
+                />
+              </div>
+            </td>
+            <td class="price">
+              <div class="money">
+                <span>Rs.</span>
+                <input type="number" name="buyPrice" [(ngModel)]="row.buyPrice" />
+              </div>
+            </td>
+            <td><input type="number" name="quantity" [(ngModel)]="row.quantity" /></td>
+            <td class="sell-date">
+              <div class="date-field">
+                <input
+                  type="text"
+                  name="sellDate"
+                  placeholder="dd-MMM-yyyy"
+                  [(ngModel)]="row.sellDate"
+                  [class.invalid]="isInvalidDate(row.sellDate)"
+                  (click)="openCalendar(sellPicker, row.sellDate)"
+                  (blur)="normalizeDate(row, 'sellDate')"
+                />
+                <input
+                  #sellPicker
+                  type="date"
+                  class="native-date"
+                  tabindex="-1"
+                  aria-hidden="true"
+                  (change)="pickDate(row, 'sellDate', sellPicker)"
+                />
+              </div>
+            </td>
+            <td class="price">
+              <div class="money">
+                <span>Rs.</span>
+                <input type="number" name="sellPrice" [(ngModel)]="row.sellPrice" />
+              </div>
+            </td>
+          } @else {
+            <td class="symbol">{{ row.symbol }}</td>
+            <td>{{ row.buyDate }}</td>
+            <td class="price">
+              @if (priceCell(row.buyPrice, row.quantity); as price) {
+                <div>{{ price.main }}</div>
+                @if (price.perItem) {
+                  <div class="per-item">{{ price.perItem }}</div>
+                }
+              }
+            </td>
+            <td>{{ row.quantity }}</td>
+            <td class="sell-date">
+              <span class="sell-date-text">{{ row.sellDate }}</span>
+              @if (daysOver(row); as over) {
+                <span class="days-over">{{ over }}</span>
+              }
+              @if (daysHeldText(row); as held) {
+                <div class="days-held">{{ held }}</div>
+              }
+            </td>
+            <td class="price">
+              @if (priceCell(row.sellPrice, row.quantity); as price) {
+                <div>{{ price.main }}</div>
+                @if (price.perItem) {
+                  <div class="per-item">{{ price.perItem }}</div>
+                }
+              }
+            </td>
+          }
+          <td
+            class="statistics"
+            (mouseenter)="returnBar(row) && showPopover($event, returnBar(row)!.details)"
+            (mouseleave)="hidePopover()"
+            (click)="returnBar(row) && showPopover($event, returnBar(row)!.details)"
+          >
+            @if (returnBar(row); as bar) {
+              <div
+                class="bar"
+                role="img"
+                tabindex="0"
+                [attr.aria-label]="bar.details.label"
+                (focus)="showPopover($event, bar.details)"
+                (blur)="hidePopover()"
+              >
+                <div
+                  class="actual"
+                  [class]="bar.details.state"
+                  [style.width.%]="bar.actualWidth"
+                ></div>
+                <div class="bank" [style.width.%]="bar.bankWidth"></div>
+              </div>
+            }
+          </td>
+          <td class="actions">
+            <button
+              type="button"
+              class="icon edit"
+              [attr.aria-label]="row.editing ? 'Done editing' : 'Edit order'"
+              [title]="row.editing ? 'Done' : 'Edit'"
+              (click)="toggleEdit(row.id)"
+            >
+              @if (row.editing) {
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 13l4 4L19 7" />
+                </svg>
+              } @else {
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 20h4L19 9l-4-4L4 16v4z" />
+                  <path d="M13.5 6.5l4 4" />
+                </svg>
+              }
+            </button>
+            <button
+              type="button"
+              class="icon delete"
+              aria-label="Delete order"
+              title="Delete"
+              (click)="deleteRow(row.id)"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h16" />
+                <path d="M9 7V4h6v3" />
+                <path d="M6 7l1 13h10l1-13" />
+                <path d="M10 11v6M14 11v6" />
+              </svg>
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+@if (popover(); as p) {
+  <app-return-popover [details]="p.details" [anchorX]="p.anchorX" [top]="p.top" [below]="p.below" />
+}
