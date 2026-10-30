@@ -1,0 +1,11 @@
+<main class="home">
+  <h1>My Utility Apps</h1>
+  <div class="cards">
+    @for (app of apps; track app.path) {
+      <a class="card" [href]="app.url">
+        <h2>{{ app.name }}</h2>
+        <p>{{ app.description }}</p>
+      </a>
+    }
+  </div>
+</main>

@@ -1,0 +1,39 @@
+{
+  "name": "my-utility-app",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start:home": "ng serve home --port 4200",
+    "start:average-price": "ng serve average-price --port 4201",
+    "start:dummy-app": "ng serve dummy-app --port 4202",
+    "start": "concurrently -k -n home,average-price,dummy-app \"npm:start:home\" \"npm:start:average-price\" \"npm:start:dummy-app\"",
+    "build:home": "ng build home",
+    "build:average-price": "ng build average-price",
+    "build:dummy-app": "ng build dummy-app",
+    "build": "npm run build:home && npm run build:average-price && npm run build:dummy-app",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "private": true,
+  "packageManager": "npm@10.9.8",
+  "dependencies": {
+    "@angular/common": "^22.1.0",
+    "@angular/compiler": "^22.1.0",
+    "@angular/core": "^22.1.0",
+    "@angular/forms": "^22.1.0",
+    "@angular/platform-browser": "^22.1.0",
+    "@angular/router": "^22.1.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.2.5",
+    "@angular/cli": "^22.1.4",
+    "@angular/compiler-cli": "^22.1.0",
+    "concurrently": "^10.0.6",
+    "jsdom": "^30.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "~6.0.2",
+    "vitest": "^5.0.0"
+  }
+}
