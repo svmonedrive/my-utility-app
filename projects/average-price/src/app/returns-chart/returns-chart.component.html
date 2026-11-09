@@ -1,0 +1,120 @@
+<section class="panel" aria-labelledby="returns-title">
+  <header class="panel-header">
+    <h2 id="returns-title">
+      Market vs bank
+      <span class="sub">bank at {{ rate }}% a year, counted from each buy date</span>
+    </h2>
+    <button type="button" class="toggle" [attr.aria-expanded]="open()" (click)="toggle()">
+      {{ open() ? 'Hide' : 'Show' }}
+    </button>
+  </header>
+
+  <!--
+    The body stays in the page and collapses with a height transition (see the scss), so showing it
+    again is instant to build and the chart keeps its size. `inert` keeps hidden controls out of reach.
+  -->
+  <div
+    class="body"
+    [class.open]="open()"
+    [class.settled]="settled()"
+    [attr.inert]="open() ? null : ''"
+    (transitionend)="onTransitionEnd($event)"
+  >
+    <div class="body-inner">
+    @if (comparison(); as c) {
+      <div class="tiles">
+        <div class="tile">
+          <span class="tile-label">Invested</span>
+          <strong class="tile-value" data-tile="invested">{{ money(c.invested) }}</strong>
+          <span class="tile-note" data-tile="invested-note"
+            >{{ c.orders }} {{ c.orders === 1 ? 'order' : 'orders' }} · {{ c.sold }} sold ·
+            {{ c.holdings }} holding</span
+          >
+        </div>
+        <div class="tile">
+          <span class="tile-label">Bank interest</span>
+          <strong class="tile-value positive" data-tile="interest">{{
+            signedMoney(c.bankInterest)
+          }}</strong>
+          <span class="tile-note" data-tile="interest-percent"
+            >{{ c.bankInterestPercent.toFixed(2) }}% of the money in</span
+          >
+        </div>
+        <div class="tile">
+          <span class="tile-label">Market profit</span>
+          <strong
+            class="tile-value"
+            data-tile="profit"
+            [class.positive]="c.marketProfit > 0"
+            [class.negative]="c.marketProfit < 0"
+            >{{ signedMoney(c.marketProfit) }}</strong
+          >
+          <span class="tile-note" data-tile="profit-percent">
+            @if (c.unrealisedProfit !== null && c.currentPrice !== null) {
+              incl. {{ signedMoney(c.unrealisedProfit) }} on {{ c.holdings }} not sold, at
+              {{ money(c.currentPrice) }}
+            } @else if (c.sold) {
+              {{ c.marketProfitPercent.toFixed(2) }}% on the {{ c.sold }} sold
+              {{ c.sold === 1 ? 'order' : 'orders' }}
+            } @else {
+              no order is sold yet
+            }
+          </span>
+        </div>
+        <div class="tile">
+          <span class="tile-label">Market vs bank</span>
+          <strong
+            class="tile-value"
+            data-tile="difference"
+            [class.positive]="c.difference > 0"
+            [class.negative]="c.difference < 0"
+            >{{ signedMoney(c.difference) }}</strong
+          >
+          <span class="tile-note" data-tile="difference-note">{{
+            c.difference > 0
+              ? 'market is ahead of the bank'
+              : c.difference < 0
+                ? 'market is behind the bank'
+                : 'market and bank are level'
+          }}</span>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h3>Bank interest vs market profit</h3>
+        <lib-line-chart
+          [series]="series()"
+          [markers]="markers()"
+          [height]="230"
+          [xLabel]="formatDay"
+          [yLabel]="axis"
+          [valueLabel]="signedMoney"
+          ariaLabel="Interest the money would have earned in a bank, and profit made in the market, by date"
+        />
+      </div>
+
+      <p class="note">
+        Market profit is counted when an order is sold: (sell price − buy price) × quantity, before
+        any charges.
+        @if (c.currentPrice !== null) {
+          The orders not sold yet are valued as if sold today at the current price you typed
+          ({{ money(c.currentPrice) }}), so the last point of the green line includes them.
+        } @else {
+          Orders not sold yet earn bank interest here but have no market profit, because the data has
+          no market price. Choose one symbol, turn on Holding and type its current price to value them.
+        }
+        The orders counted are the ones the table lists: the year on screen, with the filters above.
+        @if (c.skipped) {
+          {{ c.skipped }} {{ c.skipped === 1 ? 'order has' : 'orders have' }} no usable price,
+          quantity or sell date and {{ c.skipped === 1 ? 'is' : 'are' }} left out.
+        }
+      </p>
+    } @else {
+      <p class="empty">
+        No orders to compare. Orders with a buy date, price and quantity show up here, as the
+        filters allow.
+      </p>
+    }
+    </div>
+  </div>
+</section>

@@ -1,4 +1,20 @@
 <div class="filters">
+  @if (filter.showCurrentPrice()) {
+    <label class="price" [title]="'Current price of ' + filter.symbol() + ', to value the orders not sold yet'">
+      <span>Rs.</span>
+      <input
+        type="number"
+        name="currentPrice"
+        min="0"
+        step="any"
+        placeholder="Current price"
+        [attr.aria-label]="'Current price of ' + filter.symbol()"
+        [value]="filter.currentPrice() ?? ''"
+        (change)="applyCurrentPrice($event)"
+      />
+    </label>
+  }
+
   <select
     id="symbol-filter"
     name="symbolFilter"
@@ -11,21 +27,6 @@
     <option [value]="allSymbols">All symbols</option>
     @for (symbol of orders.symbols(); track symbol) {
       <option [value]="symbol">{{ symbol }}</option>
-    }
-  </select>
-
-  <select
-    id="month-filter"
-    name="monthFilter"
-    aria-label="Filter by month"
-    title="Show only the orders bought in this month"
-    [class.active]="filter.month() !== null"
-    [ngModel]="filter.month() === null ? '' : filter.month()"
-    (ngModelChange)="setMonth($event)"
-  >
-    <option value="">All months</option>
-    @for (month of months; track month.value) {
-      <option [value]="month.value">{{ month.label }}</option>
     }
   </select>
 
@@ -42,4 +43,19 @@
     </svg>
     Holding
   </button>
+
+  <select
+    id="month-filter"
+    name="monthFilter"
+    aria-label="Filter by month"
+    title="Show only the orders bought in this month"
+    [class.active]="filter.month() !== null"
+    [ngModel]="filter.month() === null ? '' : filter.month()"
+    (ngModelChange)="setMonth($event)"
+  >
+    <option value="">All months</option>
+    @for (month of months; track month.value) {
+      <option [value]="month.value">{{ month.label }}</option>
+    }
+  </select>
 </div>

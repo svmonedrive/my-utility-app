@@ -45,15 +45,8 @@ export class OrdersTableComponent {
   protected readonly daysHeldText = OrdersTableHelper.daysHeldText;
   protected readonly priceCell = formatPriceCell;
 
-  /** The rows to list: the filters of the toolbar (symbol, month and "Holding") all apply. */
-  protected readonly visibleRows = computed(() =>
-    OrdersTableHelper.filterOrders(
-      this.orders.rows(),
-      this.filter.symbol(),
-      this.filter.month(),
-      this.filter.onlyNotSold(),
-    ),
-  );
+  /** The rows to list: the ones the toolbar's filters (symbol, month and "Holding") let through. */
+  protected readonly visibleRows = this.filter.visibleRows;
 
   /** Recomputed when the rows list changes, e.g. when a row is marked Done. */
   private readonly returnBars = computed(() =>

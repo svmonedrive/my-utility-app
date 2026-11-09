@@ -45,6 +45,47 @@
   }
 }
 
+// The collapsing body: a one-row grid whose row goes between 0 and its content's height. Animating
+// `grid-template-rows` from 0fr to 1fr gives a smooth height change without knowing the height.
+.body {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  // Hidden once closed, so it cannot be tabbed into or read; the delay lets the fade-out finish first.
+  visibility: hidden;
+  transition:
+    grid-template-rows 0.3s ease,
+    opacity 0.2s ease,
+    visibility 0s linear 0.3s;
+
+  &.open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: visible;
+    transition:
+      grid-template-rows 0.3s ease,
+      opacity 0.25s ease 0.05s,
+      visibility 0s;
+  }
+}
+
+.body-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+// Fully open: nothing is clipped any more, so a tall hover box can reach past the chart.
+.body.settled .body-inner {
+  overflow: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .body,
+  .body.open {
+    transition: none;
+  }
+}
+
 .tiles {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
@@ -69,8 +110,12 @@
 .tile-value {
   font-size: 1.2rem;
 
-  &.interest {
+  &.positive {
     color: #067647;
+  }
+
+  &.negative {
+    color: #b42318;
   }
 }
 

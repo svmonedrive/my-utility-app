@@ -18,6 +18,11 @@ svg {
 .grid {
   stroke: var(--lib-chart-grid-color, #e4e7ec);
   stroke-width: 1;
+
+  // The line for 0, when the chart also shows negative values.
+  &.zero {
+    stroke: var(--lib-chart-zero-color, #98a2b3);
+  }
 }
 
 .axis {
@@ -50,6 +55,16 @@ svg {
   &.active {
     stroke: #475467;
     stroke-width: 1.5;
+  }
+
+  // A marker with its own colour (`--marker-color`): thicker, so a light colour still shows.
+  &.colored {
+    stroke: var(--marker-color);
+    stroke-width: 1.5;
+
+    &.active {
+      stroke-width: 2.5;
+    }
   }
 }
 
@@ -84,6 +99,11 @@ svg {
 .tooltip-title {
   margin-bottom: 0.2rem;
   color: #98a2b3;
+
+  // The next marker's box, when several are shown together.
+  &:not(:first-child) {
+    margin-top: 0.5rem;
+  }
 }
 
 .tooltip-row {

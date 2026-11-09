@@ -9,6 +9,10 @@ export const formatRupees = (n: number | null, minFraction = 0): string =>
 export const formatSignedAmount = (n: number): string =>
   `${n < 0 ? '-' : n > 0 ? '+' : ''}${format(Math.abs(n), 2)}`;
 
+/** "+Rs. 1,250.00" / "-Rs. 120.50" / "Rs. 0.00": signed, with the currency and two decimals. */
+export const formatSignedRupees = (n: number): string =>
+  `${n < 0 ? '-' : n > 0 ? '+' : ''}${formatRupees(Math.abs(n), 2)}`;
+
 export interface PriceCell {
   /** The total amount, e.g. "Rs. 1,000"; just the price when there is no usable quantity. */
   main: string;

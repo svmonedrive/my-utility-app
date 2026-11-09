@@ -34,4 +34,11 @@ export interface ChartMarker {
   title: string;
   /** The lines of the hover box: a label on the left and a value on the right. */
   rows: readonly { label: string; value: string }[];
+  /** Colour of the line, e.g. `'#eab308'`. Without one it is grey. */
+  color?: string;
+  /**
+   * Its name in the legend, e.g. `'Purchase day'`. Markers with the same legend name share one legend
+   * entry. Without one, the chart's `markersName` is used.
+   */
+  legend?: string;
 }

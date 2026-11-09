@@ -62,3 +62,19 @@ select {
     }
   }
 }
+
+// Current price of the chosen symbol: "Rs." in front of a number input.
+.price {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #475467;
+
+  input {
+    width: 8.5rem;
+    padding: 0.3rem 0.4rem;
+    border: 1px solid #98a2b3;
+    border-radius: 6px;
+    font: inherit;
+  }
+}

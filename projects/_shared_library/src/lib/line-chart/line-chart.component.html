@@ -10,6 +10,7 @@
       @for (tick of c.yTicks; track tick.value) {
         <line
           class="grid"
+          [class.zero]="tick.zero"
           [attr.x1]="c.plotLeft"
           [attr.x2]="c.plotRight"
           [attr.y1]="tick.y"
@@ -32,7 +33,10 @@
       @for (line of c.markerLines; track line.marker.x) {
         <line
           class="marker-line"
-          [class.active]="hoverMarker() === line.marker"
+          [class.colored]="line.marker.color"
+          [class.active]="hoverMarkers().includes(line.marker)"
+          [style.--marker-color]="line.marker.color"
+          [style.stroke-dashoffset.px]="line.offset"
           [attr.x1]="line.x"
           [attr.x2]="line.x"
           [attr.y1]="c.plotTop"
@@ -73,12 +77,14 @@
     </svg>
     @if (markerBox(); as m) {
       <div class="tooltip" [style.left.px]="m.x" [class.flip]="m.flip">
-        <div class="tooltip-title">{{ m.marker.title }}</div>
-        @for (row of m.marker.rows; track $index) {
-          <div class="tooltip-row">
-            <span class="tooltip-name">{{ row.label }}</span>
-            <strong>{{ row.value }}</strong>
-          </div>
+        @for (marker of m.markers; track marker) {
+          <div class="tooltip-title">{{ marker.title }}</div>
+          @for (row of marker.rows; track $index) {
+            <div class="tooltip-row">
+              <span class="tooltip-name">{{ row.label }}</span>
+              <strong>{{ row.value }}</strong>
+            </div>
+          }
         }
       </div>
     } @else if (hover(); as h) {
@@ -101,8 +107,11 @@
           >
         }
       }
-      @if (markersName() && c.markerLines.length) {
-        <span class="legend-item"><span class="swatch dashed"></span>{{ markersName() }}</span>
+      @for (item of c.markerLegend; track item.name) {
+        <span class="legend-item"
+          ><span class="swatch dashed" [style.border-left-color]="item.color"></span
+          >{{ item.name }}</span
+        >
       }
     </div>
   }
