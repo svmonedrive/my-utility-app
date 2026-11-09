@@ -10,7 +10,8 @@
     "build:home": "ng build home",
     "build:average-price": "ng build average-price",
     "build:dummy-app": "ng build dummy-app",
-    "build": "npm run build:home && npm run build:average-price && npm run build:dummy-app",
+    "build:library": "ng build _shared_library",
+    "build":"npm run build:home && npm run build:average-price && npm run build:dummy-app",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "build:pages": "node scripts/build-pages.mjs",
@@ -19,6 +20,7 @@
   "private": true,
   "packageManager": "npm@10.9.8",
   "dependencies": {
+    "@angular/cdk": "^22.2.0",
     "@angular/common": "^22.1.0",
     "@angular/compiler": "^22.1.0",
     "@angular/core": "^22.1.0",
@@ -36,6 +38,7 @@
     "angular-cli-ghpages": "^3.1.2",
     "concurrently": "^10.0.6",
     "jsdom": "^30.0.0",
+    "ng-packagr": "^22.2.0",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",
     "vitest": "^5.0.0"

@@ -32,6 +32,26 @@
     }
   },
   "projects": {
+    "_shared_library": {
+      "projectType": "library",
+      "root": "projects/_shared_library",
+      "sourceRoot": "projects/_shared_library/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/_shared_library/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/_shared_library/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        }
+      }
+    },
     "average-price": {
       "projectType": "application",
       "schematics": {

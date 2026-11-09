@@ -6,9 +6,11 @@ import { cpSync, copyFileSync, rmSync, writeFileSync, mkdirSync, readFileSync } 
 
 const REPO = 'my-utility-app';
 const HOME = 'home';
-// Every application in angular.json except the home shell.
-const APPS = Object.keys(JSON.parse(readFileSync('angular.json', 'utf8')).projects).filter(
-  (name) => name !== HOME,
+// Every application in angular.json except the home shell. Libraries (like `_shared_library`) are not sites: the
+// apps compile them from source, so they need no build of their own here.
+const projects = JSON.parse(readFileSync('angular.json', 'utf8')).projects;
+const APPS = Object.keys(projects).filter(
+  (name) => name !== HOME && projects[name].projectType === 'application',
 );
 const SITE = 'dist/site';
 

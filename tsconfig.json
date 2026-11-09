@@ -12,7 +12,10 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "ES2022",
-    "module": "preserve"
+    "module": "preserve",
+    "paths": {
+      "@my-utility/shared": ["./projects/_shared_library/src/public-api.ts"]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
@@ -21,6 +24,7 @@
   },
   "files": [],
   "references": [
+    { "path": "./projects/_shared_library/tsconfig.lib.json" },
     {
       "path": "./projects/average-price/tsconfig.app.json"
     },
