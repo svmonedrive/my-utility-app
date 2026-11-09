@@ -1,0 +1,45 @@
+// Fills the height it is given; only the body area scrolls, so the header row stays in view.
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+.lib-table-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+// Separate borders (not collapsed) so the sticky header keeps its borders while scrolling.
+.lib-table {
+  width: fit-content;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+th,
+td {
+  min-width: var(--lib-table-column-min-width, 0);
+  padding: var(--lib-table-cell-padding-block, 0.6rem) var(--lib-table-cell-padding-inline, 0.8rem);
+  border: solid var(--lib-table-border-color, #d0d5dd);
+  border-width: 0 1px 1px 0;
+  text-align: left;
+}
+
+tr > :first-child {
+  border-left-width: 1px;
+}
+
+th {
+  border-top-width: 1px;
+  background: var(--lib-table-header-background, #f2f4f7);
+}
+
+// The extra actions column: as wide as its buttons.
+.lib-actions {
+  min-width: 0;
+  white-space: nowrap;
+  text-align: center;
+}

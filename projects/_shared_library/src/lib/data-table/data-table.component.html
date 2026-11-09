@@ -1,0 +1,62 @@
+<div class="lib-table-scroll">
+  <table cdk-table class="lib-table" [dataSource]="rows()" [trackBy]="trackBy()">
+    @for (column of columns(); track column.key) {
+      <ng-container [cdkColumnDef]="column.key">
+        <th cdk-header-cell *cdkHeaderCellDef [ngStyle]="columnStyle(column)">
+          @if (headerTemplate(column); as template) {
+            <ng-container
+              [ngTemplateOutlet]="template"
+              [ngTemplateOutletContext]="{ $implicit: column }"
+            />
+          } @else {
+            {{ column.header }}
+          }
+        </th>
+        <td cdk-cell *cdkCellDef="let row" [ngStyle]="columnStyle(column)">
+          @if (cellTemplate(column); as template) {
+            <ng-container
+              [ngTemplateOutlet]="template"
+              [ngTemplateOutletContext]="{
+                $implicit: row,
+                column: column,
+                value: valueOf(row, column),
+              }"
+            />
+          } @else {
+            {{ valueOf(row, column) }}
+          }
+        </td>
+      </ng-container>
+    }
+
+    @if (hasActions()) {
+      <ng-container [cdkColumnDef]="actionsKey">
+        <th cdk-header-cell *cdkHeaderCellDef class="lib-actions">
+          @if (actionHeader(); as header) {
+            <ng-container [ngTemplateOutlet]="header.template" />
+          }
+        </th>
+        <td cdk-cell *cdkCellDef="let row" class="lib-actions">
+          @if (actionCell(); as cell) {
+            <ng-container
+              [ngTemplateOutlet]="cell.template"
+              [ngTemplateOutletContext]="{ $implicit: row }"
+            />
+          }
+        </td>
+      </ng-container>
+    }
+
+    <tr cdk-header-row *cdkHeaderRowDef="columnKeys(); sticky: true"></tr>
+    <tr
+      cdk-row
+      *cdkRowDef="let row; columns: columnKeys()"
+      [ngStyle]="rowStyle()?.(row)"
+      (click)="rowClick.emit({ row, event: $event })"
+      (dblclick)="rowDblClick.emit({ row, event: $event })"
+      (mousedown)="rowMouseDown.emit({ row, event: $event })"
+      (pointerup)="rowPointerUp.emit({ row, event: $event })"
+      (keydown)="rowKeyDown.emit({ row, event: $event })"
+    ></tr>
+  </table>
+</div>

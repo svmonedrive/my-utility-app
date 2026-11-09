@@ -1,0 +1,118 @@
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.settings-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: #fff;
+  color: #475467;
+
+  svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:hover {
+    background: #f2f4f7;
+  }
+}
+
+.settings-dialog {
+  width: min(30rem, calc(100vw - 2rem));
+  padding: 1.25rem;
+  border: 0;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+  font-family: system-ui, sans-serif;
+
+  &::backdrop {
+    background: rgba(16, 24, 40, 0.5);
+  }
+
+  h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.15rem;
+  }
+
+  p {
+    margin: 0 0 0.75rem;
+    line-height: 1.4;
+  }
+
+  .state {
+    color: #475467;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.9rem;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.45rem 0.5rem;
+    border: 1px solid #98a2b3;
+    border-radius: 6px;
+    font: inherit;
+    box-sizing: border-box;
+  }
+
+  // Shows dots instead of the characters, like a password field (without being one).
+  .secret {
+    -webkit-text-security: disc;
+    text-security: disc;
+  }
+
+  .error {
+    margin-top: 0.5rem;
+    color: #d92d20;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+
+  .spacer {
+    flex: 1;
+  }
+
+  button {
+    padding: 0.4rem 0.9rem;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    background: #fff;
+  }
+
+  .primary {
+    border-color: #1565c0;
+    background: #1565c0;
+    color: #fff;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  }
+
+  .danger {
+    border-color: #d92d20;
+    color: #d92d20;
+  }
+}
