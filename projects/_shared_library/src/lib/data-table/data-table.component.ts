@@ -1,8 +1,24 @@
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { CdkTableModule } from '@angular/cdk/table';
 import { NgStyle, NgTemplateOutlet } from '@angular/common';
-import { Component, computed, contentChild, contentChildren, input, output, TemplateRef, TrackByFunction, } from '@angular/core';
-import { LibTdActionDirective, LibTdContext, LibTdDirective, LibThActionDirective, LibThContext, LibThDirective, } from './data-table.directives';
+import {
+  Component,
+  computed,
+  contentChild,
+  contentChildren,
+  input,
+  output,
+  TemplateRef,
+  TrackByFunction,
+} from '@angular/core';
+import {
+  LibTdActionDirective,
+  LibTdContext,
+  LibTdDirective,
+  LibThActionDirective,
+  LibThContext,
+  LibThDirective,
+} from './data-table.directives';
 import { DataTableColumn, RowEvent } from './data-table.types';
 
 /** Key of the extra column that holds the `libThAction` / `libTdAction` templates. */

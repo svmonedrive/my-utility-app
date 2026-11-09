@@ -1,0 +1,128 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.chart {
+  position: relative;
+  width: 100%;
+  font-family: inherit;
+}
+
+svg {
+  display: block;
+  // Dragging sideways follows the finger over the chart; dragging up or down still scrolls the page.
+  touch-action: pan-y;
+}
+
+.grid {
+  stroke: var(--lib-chart-grid-color, #e4e7ec);
+  stroke-width: 1;
+}
+
+.axis {
+  fill: var(--lib-chart-axis-color, #667085);
+  font-size: 11px;
+}
+
+.line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.area {
+  opacity: 0.15;
+}
+
+// The line that follows the pointer: solid, so it is not mistaken for a dashed marker line.
+.cursor {
+  stroke: #98a2b3;
+  stroke-width: 1;
+}
+
+// A vertical dashed line for an event (e.g. a purchase day); darker while the pointer is on it.
+.marker-line {
+  stroke: #98a2b3;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+
+  &.active {
+    stroke: #475467;
+    stroke-width: 1.5;
+  }
+}
+
+// The ring on a line at the hovered position.
+.hover-dot {
+  fill: #fff;
+  stroke-width: 2;
+}
+
+.tooltip {
+  position: absolute;
+  top: 8px;
+  z-index: 1;
+  min-width: 11rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  background: #101828;
+  color: #fff;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  // To the right of the hovered position, or to its left when that is where the room is.
+  transform: translateX(12px);
+
+  &.flip {
+    transform: translateX(calc(-100% - 12px));
+  }
+}
+
+.tooltip-title {
+  margin-bottom: 0.2rem;
+  color: #98a2b3;
+}
+
+.tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  strong {
+    margin-left: auto;
+    padding-left: 0.75rem;
+  }
+}
+
+.swatch {
+  flex: none;
+  width: 0.7rem;
+  height: 0.4rem;
+  border-radius: 999px;
+
+  // The legend entry of the dashed marker lines.
+  &.dashed {
+    width: 0;
+    height: 0.8rem;
+    border-left: 2px dashed #98a2b3;
+    border-radius: 0;
+  }
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin-top: 0.25rem;
+  color: #475467;
+  font-size: 0.8rem;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}

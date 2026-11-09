@@ -1,0 +1,109 @@
+<div class="chart" role="img" [attr.aria-label]="ariaLabel()">
+  @if (chart(); as c) {
+    <svg
+      [attr.width]="c.width"
+      [attr.height]="c.height"
+      (pointermove)="onPointerMove($event)"
+      (pointerdown)="onPointerMove($event)"
+      (pointerleave)="onPointerLeave()"
+    >
+      @for (tick of c.yTicks; track tick.value) {
+        <line
+          class="grid"
+          [attr.x1]="c.plotLeft"
+          [attr.x2]="c.plotRight"
+          [attr.y1]="tick.y"
+          [attr.y2]="tick.y"
+        />
+        <text class="axis" text-anchor="end" [attr.x]="c.plotLeft - 8" [attr.y]="tick.y + 4">
+          {{ tick.label }}
+        </text>
+      }
+      @for (tick of c.xTicks; track tick.value) {
+        <text
+          class="axis"
+          [attr.text-anchor]="tick.anchor"
+          [attr.x]="tick.x"
+          [attr.y]="c.plotBottom + 17"
+        >
+          {{ tick.label }}
+        </text>
+      }
+      @for (line of c.markerLines; track line.marker.x) {
+        <line
+          class="marker-line"
+          [class.active]="hoverMarker() === line.marker"
+          [attr.x1]="line.x"
+          [attr.x2]="line.x"
+          [attr.y1]="c.plotTop"
+          [attr.y2]="c.plotBottom"
+        />
+      }
+      @for (path of c.paths; track path.name) {
+        @if (path.area) {
+          <path class="area" [attr.d]="path.area" [attr.fill]="path.color" />
+        }
+        @if (path.line) {
+          <path class="line" [attr.d]="path.line" [attr.stroke]="path.color" />
+        }
+        @if (path.dot) {
+          <circle [attr.cx]="path.dot.x" [attr.cy]="path.dot.y" r="4" [attr.fill]="path.color" />
+        }
+      }
+      @if (hover(); as h) {
+        <line
+          class="cursor"
+          [attr.x1]="h.x"
+          [attr.x2]="h.x"
+          [attr.y1]="c.plotTop"
+          [attr.y2]="c.plotBottom"
+        />
+        @for (entry of h.entries; track entry.name) {
+          @if (entry.drawn) {
+            <circle
+              class="hover-dot"
+              [attr.cx]="entry.cx"
+              [attr.cy]="entry.cy"
+              r="4"
+              [attr.stroke]="entry.color"
+            />
+          }
+        }
+      }
+    </svg>
+    @if (markerBox(); as m) {
+      <div class="tooltip" [style.left.px]="m.x" [class.flip]="m.flip">
+        <div class="tooltip-title">{{ m.marker.title }}</div>
+        @for (row of m.marker.rows; track $index) {
+          <div class="tooltip-row">
+            <span class="tooltip-name">{{ row.label }}</span>
+            <strong>{{ row.value }}</strong>
+          </div>
+        }
+      </div>
+    } @else if (hover(); as h) {
+      <div class="tooltip" [style.left.px]="h.x" [class.flip]="h.flip">
+        <div class="tooltip-title">{{ h.label }}</div>
+        @for (entry of h.entries; track entry.name) {
+          <div class="tooltip-row">
+            <span class="swatch" [style.background]="entry.color"></span>
+            <span class="tooltip-name">{{ entry.name }}</span>
+            <strong>{{ entry.value }}</strong>
+          </div>
+        }
+      </div>
+    }
+    <div class="legend">
+      @for (s of series(); track s.name) {
+        @if (!s.hidden) {
+          <span class="legend-item"
+            ><span class="swatch" [style.background]="s.color"></span>{{ s.name }}</span
+          >
+        }
+      }
+      @if (markersName() && c.markerLines.length) {
+        <span class="legend-item"><span class="swatch dashed"></span>{{ markersName() }}</span>
+      }
+    </div>
+  }
+</div>

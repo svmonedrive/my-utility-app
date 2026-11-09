@@ -28,3 +28,19 @@ export const formatPriceCell = (
     ? { main: formatRupees(price * quantity), perItem: `(${formatRupees(price)}/per item)` }
     : { main: formatRupees(price), perItem: '' };
 };
+
+/** Short money text for a chart axis: 0, 500, 25K, 1.5L, 2Cr (thousand, lakh, crore). */
+export const formatCompactRupees = (n: number): string => {
+  const short = (value: number, unit: string): string => `${Number(value.toFixed(2))}${unit}`;
+  const abs = Math.abs(n);
+  if (abs >= 1e7) {
+    return short(n / 1e7, 'Cr');
+  }
+  if (abs >= 1e5) {
+    return short(n / 1e5, 'L');
+  }
+  if (abs >= 1e3) {
+    return short(n / 1e3, 'K');
+  }
+  return short(n, '');
+};

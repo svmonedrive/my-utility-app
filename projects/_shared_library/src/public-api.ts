@@ -6,4 +6,5 @@
 
 export * from './lib/data-table';
 export * from './lib/github';
+export * from './lib/line-chart';
 export * from './lib/popover';
