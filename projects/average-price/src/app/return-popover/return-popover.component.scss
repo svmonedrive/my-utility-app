@@ -1,8 +1,12 @@
 @use '../colors' as c;
 
+// The component sits inside the CDK overlay pane as a plain block.
+:host {
+  display: block;
+}
+
+// Just the panel: the CDK overlay (see `PopoverService`) puts it next to the cell.
 .popover {
-  position: fixed;
-  z-index: 10;
   // As wide as its content so no line breaks; only wraps when the content is wider than the screen.
   width: max-content;
   max-width: calc(100vw - 16px);
@@ -10,17 +14,13 @@
   padding: 0.9rem 1rem;
   border-radius: 10px;
   background: #101828;
+  // The overlay sits at the end of the page, outside the app's own font, so the font is set here.
+  font-family: system-ui, sans-serif;
   // Every line uses the same muted, slightly smaller text style.
   color: #98a2b3;
   font-size: 0.9rem;
   line-height: 1.4;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  transform: translate(-50%, -100%);
-  pointer-events: none;
-
-  &.below {
-    transform: translate(-50%, 0);
-  }
 }
 
 // The title, with a separator under it (the same line as the one above the summary).

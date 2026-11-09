@@ -1,236 +1,158 @@
-<div class="table-area">
-  <div class="toolbar">
-    <span class="status" [class.error]="status().error" role="status">{{ status().text }}</span>
-    @if (store.canWrite()) {
-      <button type="button" class="save" [disabled]="saving() || !unsaved()" (click)="save()">
-        Save
-      </button>
-    }
-    <lib-github-settings (connected)="reload()" (disconnected)="reload()" />
-  </div>
-
-  <lib-data-table
-    class="orders"
-    [columns]="columns"
-    [rows]="visibleRows()"
-    [trackBy]="trackById"
-    [rowStyle]="rowStyle"
-    (rowDblClick)="onRowDoubleClick($event.event, $event.row.id)"
-    (rowPointerUp)="onRowPointerUp($event.event, $event.row.id)"
-    (rowMouseDown)="onRowMouseDown($event.event, $event.row.editing)"
-    (rowKeyDown)="onRowKeyDown($event)"
-  >
-    <!-- Header cells with a filter next to the title -->
-    <ng-template libTh="symbol">
-      <span class="th-with-filter">
-        Symbol
-        <select
-          class="symbol-filter"
-          name="symbolFilter"
-          aria-label="Filter by symbol"
-          title="Filter by symbol"
-          [class.active]="symbolFilter() !== allSymbols"
-          [ngModel]="symbolFilter()"
-          (ngModelChange)="symbolFilter.set($event)"
-        >
-          <option [value]="allSymbols">{{ allSymbols }}</option>
-          @for (symbol of symbols; track symbol) {
-            <option [value]="symbol">{{ symbol }}</option>
-          }
-        </select>
-      </span>
-    </ng-template>
-
-    <ng-template libTh="sellDate">
-      <span class="th-with-filter">
-        Sell date
-        <button
-          type="button"
-          class="filter"
-          [class.active]="onlyNotSold()"
-          [attr.aria-pressed]="onlyNotSold()"
-          aria-label="Holding: show only the orders not sold yet"
-          title="Holding: show only the orders not sold yet"
-          (click)="toggleNotSoldFilter()"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 5h16l-6 7v6l-4 2v-8L4 5z" />
-          </svg>
-        </button>
-      </span>
-    </ng-template>
-
-    <!-- Body cells: each shows the plain value, or its inputs while the row is being edited -->
-    <ng-template libTd="symbol" let-row>
-      @if (row.editing) {
-        <select name="symbol" aria-label="Symbol" [(ngModel)]="row.symbol">
-          @for (symbol of symbols; track symbol) {
-            <option [value]="symbol">{{ symbol }}</option>
-          }
-        </select>
-      } @else {
-        {{ row.symbol }}
-      }
-    </ng-template>
-
-    <ng-template libTd="buyDate" let-row>
-      @if (row.editing) {
-        <div class="date-field">
-          <input
-            type="text"
-            name="buyDate"
-            placeholder="dd-MMM-yyyy"
-            [(ngModel)]="row.buyDate"
-            [class.invalid]="isInvalidDate(row.buyDate)"
-            (click)="openCalendar(buyPicker, row.buyDate)"
-            (blur)="normalizeDate(row, 'buyDate')"
-          />
-          <input
-            #buyPicker
-            type="date"
-            class="native-date"
-            tabindex="-1"
-            aria-hidden="true"
-            (change)="pickDate(row, 'buyDate', buyPicker)"
-          />
-        </div>
-      } @else {
-        {{ row.buyDate }}
-      }
-    </ng-template>
-
-    <ng-template libTd="buyPrice" let-row>
-      @if (row.editing) {
-        <div class="money">
-          <span>Rs.</span>
-          <input type="number" name="buyPrice" [(ngModel)]="row.buyPrice" />
-        </div>
-      } @else if (priceCell(row.buyPrice, row.quantity); as price) {
-        <div>{{ price.main }}</div>
-        @if (price.perItem) {
-          <div class="per-item">{{ price.perItem }}</div>
+<lib-data-table class="orders" [columns]="columns" [rows]="visibleRows()" [trackBy]="trackById" [rowStyle]="rowStyle"
+  (rowDblClick)="onRowDoubleClick($event.event, $event.row.id)"
+  (rowPointerUp)="onRowPointerUp($event.event, $event.row.id)"
+  (rowMouseDown)="onRowMouseDown($event.event, $event.row.editing)" (rowKeyDown)="onRowKeyDown($event)">
+  <!-- Header cells with a filter next to the title -->
+  <ng-template libTh="symbol">
+    <span class="th-with-filter">
+      Symbol
+      <select class="symbol-filter" name="symbolFilter" aria-label="Filter by symbol" title="Filter by symbol"
+        [class.active]="symbolFilter() !== allSymbols" [ngModel]="symbolFilter()"
+        (ngModelChange)="symbolFilter.set($event)">
+        <option [value]="allSymbols">{{ allSymbols }}</option>
+        @for (symbol of symbols; track symbol) {
+        <option [value]="symbol">{{ symbol }}</option>
         }
-      }
-    </ng-template>
+      </select>
+    </span>
+  </ng-template>
 
-    <ng-template libTd="quantity" let-row>
-      @if (row.editing) {
-        <input type="number" name="quantity" [(ngModel)]="row.quantity" />
-      } @else {
-        {{ row.quantity }}
-      }
-    </ng-template>
-
-    <ng-template libTd="sellDate" let-row>
-      @if (row.editing) {
-        <div class="date-field">
-          <input
-            type="text"
-            name="sellDate"
-            placeholder="dd-MMM-yyyy"
-            [(ngModel)]="row.sellDate"
-            [class.invalid]="isInvalidDate(row.sellDate)"
-            (click)="openCalendar(sellPicker, row.sellDate)"
-            (blur)="normalizeDate(row, 'sellDate')"
-          />
-          <input
-            #sellPicker
-            type="date"
-            class="native-date"
-            tabindex="-1"
-            aria-hidden="true"
-            (change)="pickDate(row, 'sellDate', sellPicker)"
-          />
-        </div>
-      } @else {
-        <span class="sell-date-text">{{ row.sellDate }}</span>
-        @if (daysOver(row); as over) {
-          <span class="days-over">{{ over }}</span>
-        }
-        @if (daysHeldText(row); as held) {
-          <div class="days-held">{{ held }}</div>
-        }
-      }
-    </ng-template>
-
-    <ng-template libTd="sellPrice" let-row>
-      @if (row.editing) {
-        <div class="money">
-          <span>Rs.</span>
-          <input type="number" name="sellPrice" [(ngModel)]="row.sellPrice" />
-        </div>
-      } @else if (priceCell(row.sellPrice, row.quantity); as price) {
-        <div>{{ price.main }}</div>
-        @if (price.perItem) {
-          <div class="per-item">{{ price.perItem }}</div>
-        }
-      }
-    </ng-template>
-
-    <ng-template libTd="statistics" let-row>
-      <div
-        class="statistics"
-        (mouseenter)="returnBar(row) && showPopover($event, returnBar(row)!.details)"
-        (mouseleave)="hidePopover()"
-        (click)="returnBar(row) && showPopover($event, returnBar(row)!.details)"
-      >
-        @if (returnBar(row); as bar) {
-          <div
-            class="bar"
-            role="img"
-            tabindex="0"
-            [attr.aria-label]="bar.details.label"
-            (focus)="showPopover($event, bar.details)"
-            (blur)="hidePopover()"
-          >
-            <div class="actual" [class]="bar.details.state" [style.width.%]="bar.actualWidth"></div>
-            <div class="bank" [style.width.%]="bar.bankWidth"></div>
-          </div>
-        }
-      </div>
-    </ng-template>
-
-    <!-- The extra last column -->
-    <ng-template libThAction>
-      <button type="button" class="add" (click)="addOrder()">Add order</button>
-    </ng-template>
-
-    <ng-template libTdAction let-row>
-      <button
-        type="button"
-        class="icon edit"
-        [attr.aria-label]="row.editing ? 'Done editing' : 'Edit order'"
-        [title]="row.editing ? 'Done' : 'Edit'"
-        (click)="toggleEdit(row.id)"
-      >
-        @if (row.editing) {
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M5 13l4 4L19 7" />
-          </svg>
-        } @else {
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 20h4L19 9l-4-4L4 16v4z" />
-            <path d="M13.5 6.5l4 4" />
-          </svg>
-        }
-      </button>
-      <button
-        type="button"
-        class="icon delete"
-        aria-label="Delete order"
-        title="Delete"
-        (click)="deleteRow(row.id)"
-      >
+  <ng-template libTh="sellDate">
+    <span class="th-with-filter">
+      Sell date
+      <button type="button" class="filter" [class.active]="onlyNotSold()" [attr.aria-pressed]="onlyNotSold()"
+        aria-label="Holding: show only the orders not sold yet" title="Holding: show only the orders not sold yet"
+        (click)="toggleNotSoldFilter()">
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 7h16" />
-          <path d="M9 7V4h6v3" />
-          <path d="M6 7l1 13h10l1-13" />
-          <path d="M10 11v6M14 11v6" />
+          <path d="M4 5h16l-6 7v6l-4 2v-8L4 5z" />
         </svg>
       </button>
-    </ng-template>
-  </lib-data-table>
-</div>
-@if (popover(); as p) {
-  <app-return-popover [details]="p.details" [anchorX]="p.anchorX" [top]="p.top" [below]="p.below" />
-}
+    </span>
+  </ng-template>
+
+  <!-- Body cells: each shows the plain value, or its inputs while the row is being edited -->
+  <ng-template libTd="symbol" let-row>
+    @if (row.editing) {
+    <select name="symbol" aria-label="Symbol" [(ngModel)]="row.symbol">
+      @for (symbol of symbols; track symbol) {
+      <option [value]="symbol">{{ symbol }}</option>
+      }
+    </select>
+    } @else {
+    {{ row.symbol }}
+    }
+  </ng-template>
+
+  <ng-template libTd="buyDate" let-row>
+    @if (row.editing) {
+    <div class="date-field">
+      <input type="text" name="buyDate" placeholder="dd-MMM-yyyy" [(ngModel)]="row.buyDate"
+        [class.invalid]="isInvalidDate(row.buyDate)" (click)="openCalendar(buyPicker, row.buyDate)"
+        (blur)="normalizeDate(row, 'buyDate')" />
+      <input #buyPicker type="date" class="native-date" tabindex="-1" aria-hidden="true"
+        (change)="pickDate(row, 'buyDate', buyPicker)" />
+    </div>
+    } @else {
+    {{ row.buyDate }}
+    }
+  </ng-template>
+
+  <ng-template libTd="buyPrice" let-row>
+    @if (row.editing) {
+    <div class="money">
+      <span>Rs.</span>
+      <input type="number" name="buyPrice" [(ngModel)]="row.buyPrice" />
+    </div>
+    } @else if (priceCell(row.buyPrice, row.quantity); as price) {
+    <div>{{ price.main }}</div>
+    @if (price.perItem) {
+    <div class="per-item">{{ price.perItem }}</div>
+    }
+    }
+  </ng-template>
+
+  <ng-template libTd="quantity" let-row>
+    @if (row.editing) {
+    <input type="number" name="quantity" [(ngModel)]="row.quantity" />
+    } @else {
+    {{ row.quantity }}
+    }
+  </ng-template>
+
+  <ng-template libTd="sellDate" let-row>
+    @if (row.editing) {
+    <div class="date-field">
+      <input type="text" name="sellDate" placeholder="dd-MMM-yyyy" [(ngModel)]="row.sellDate"
+        [class.invalid]="isInvalidDate(row.sellDate)" (click)="openCalendar(sellPicker, row.sellDate)"
+        (blur)="normalizeDate(row, 'sellDate')" />
+      <input #sellPicker type="date" class="native-date" tabindex="-1" aria-hidden="true"
+        (change)="pickDate(row, 'sellDate', sellPicker)" />
+    </div>
+    } @else {
+    <span class="sell-date-text">{{ row.sellDate }}</span>
+    @if (daysOver(row); as over) {
+    <span class="days-over">{{ over }}</span>
+    }
+    @if (daysHeldText(row); as held) {
+    <div class="days-held">{{ held }}</div>
+    }
+    }
+  </ng-template>
+
+  <ng-template libTd="sellPrice" let-row>
+    @if (row.editing) {
+    <div class="money">
+      <span>Rs.</span>
+      <input type="number" name="sellPrice" [(ngModel)]="row.sellPrice" />
+    </div>
+    } @else if (priceCell(row.sellPrice, row.quantity); as price) {
+    <div>{{ price.main }}</div>
+    @if (price.perItem) {
+    <div class="per-item">{{ price.perItem }}</div>
+    }
+    }
+  </ng-template>
+
+  <ng-template libTd="statistics" let-row>
+    <div class="statistics" (mouseenter)="returnBar(row) && showPopover($event, returnBar(row)!.details)"
+      (mouseleave)="hidePopover()" (click)="returnBar(row) && showPopover($event, returnBar(row)!.details)">
+      @if (returnBar(row); as bar) {
+      <div class="bar" role="img" tabindex="0" [attr.aria-label]="bar.details.label"
+        (focus)="showPopover($event, bar.details)" (blur)="hidePopover()">
+        <div class="actual" [class]="bar.details.state" [style.width.%]="bar.actualWidth"></div>
+        <div class="bank" [style.width.%]="bar.bankWidth"></div>
+      </div>
+      }
+    </div>
+  </ng-template>
+
+  <!-- The extra last column -->
+  <ng-template libThAction>
+    <button type="button" class="add" (click)="orders.addOrder()">Add order</button>
+  </ng-template>
+
+  <ng-template libTdAction let-row>
+    <button type="button" class="icon edit" [attr.aria-label]="row.editing ? 'Done editing' : 'Edit order'"
+      [title]="row.editing ? 'Done' : 'Edit'" (click)="orders.toggleEdit(row.id)">
+      @if (row.editing) {
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 13l4 4L19 7" />
+      </svg>
+      } @else {
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 20h4L19 9l-4-4L4 16v4z" />
+        <path d="M13.5 6.5l4 4" />
+      </svg>
+      }
+    </button>
+    <button type="button" class="icon delete" aria-label="Delete order" title="Delete"
+      (click)="orders.deleteRow(row.id)">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 7h16" />
+        <path d="M9 7V4h6v3" />
+        <path d="M6 7l1 13h10l1-13" />
+        <path d="M10 11v6M14 11v6" />
+      </svg>
+    </button>
+  </ng-template>
+</lib-data-table>

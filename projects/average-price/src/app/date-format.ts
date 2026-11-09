@@ -22,6 +22,12 @@ export function formatDate(date: Date): string {
   return `${String(date.getDate()).padStart(2, '0')}-${MONTHS[date.getMonth()]}-${date.getFullYear()}`;
 }
 
+/** Tidies a typed date, e.g. `5-jan-2026` becomes `05-Jan-2026`. Text that is not a real date is returned unchanged. */
+export function normalizeDateText(text: string): string {
+  const date = parseDate(text);
+  return date ? formatDate(date) : text;
+}
+
 /** The value format of `<input type="date">`: "2026-01-20" -> Date. Null if empty or not a real date. */
 export function parseIsoDate(text: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);

@@ -14,7 +14,7 @@ export interface GithubDataConfig {
   commitMessage?: string;
 }
 
-/** Where the GitHub data pieces (`GithubDataStore`, `lib-github-settings`) get their settings. */
+/** Where the GitHub data pieces (the read and commit services, `lib-github-settings`) get their settings. */
 export const GITHUB_DATA_CONFIG = new InjectionToken<GithubDataConfig>('GITHUB_DATA_CONFIG');
 
 /**

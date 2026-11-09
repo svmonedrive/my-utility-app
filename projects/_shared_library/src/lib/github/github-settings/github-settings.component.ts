@@ -1,7 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, inject, output, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { GithubDataStore } from '../github-data.store';
+import { GITHUB_DATA_CONFIG } from '../github-data.config';
+import { GithubCommitService } from '../github-commit.service';
+import { GithubTokenService } from '../github-token.service';
 
 /**
  * A key button that opens a small dialog for the owner's GitHub token. A token is only needed to save
@@ -14,7 +16,9 @@ import { GithubDataStore } from '../github-data.store';
   styleUrl: './github-settings.component.scss',
 })
 export class GithubSettingsComponent {
-  protected readonly store = inject(GithubDataStore);
+  protected readonly tokens = inject(GithubTokenService);
+  protected readonly config = inject(GITHUB_DATA_CONFIG);
+  private readonly committer = inject(GithubCommitService);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
 
   /** Emits after a token was accepted: the data should be read again, now with the token. */
@@ -44,7 +48,7 @@ export class GithubSettingsComponent {
     }
     this.checking.set(true);
     this.error.set('');
-    this.store.connect(token).subscribe({
+    this.committer.connect(token).subscribe({
       next: () => {
         this.checking.set(false);
         this.connected.emit();
@@ -55,7 +59,7 @@ export class GithubSettingsComponent {
         const status = error instanceof HttpErrorResponse ? error.status : -1;
         this.error.set(
           status === 403
-            ? `This token can read the repository but not write to it. In the token settings, choose "Only select repositories" with ${this.store.config.repo}, and set Contents to "Read and write".`
+            ? `This token can read the repository but not write to it. In the token settings, choose "Only select repositories" with ${this.config.repo}, and set Contents to "Read and write".`
             : status === 0
               ? 'Could not reach GitHub. Check your connection and try again.'
               : 'GitHub did not accept this token. Check that it was copied completely and has not expired.',
@@ -65,7 +69,7 @@ export class GithubSettingsComponent {
   }
 
   protected removeToken(): void {
-    this.store.disconnect();
+    this.tokens.forget();
     this.disconnected.emit();
     this.close();
   }

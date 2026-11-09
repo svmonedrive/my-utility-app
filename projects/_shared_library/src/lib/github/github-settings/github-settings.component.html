@@ -20,13 +20,13 @@
     data repository. It is kept only in this browser.
   </p>
 
-  @if (store.token()) {
+  @if (tokens.token()) {
     <p class="state">A token is saved in this browser.</p>
   } @else {
     <p class="state">No token. The data is view only.</p>
   }
 
-  <label for="github-token">Token (Contents: Read and write, for {{ store.config.repo }})</label>
+  <label for="github-token">Token (Contents: Read and write, for {{ config.repo }})</label>
   <!--
     Deliberately not type="password": Chrome would offer to save it in its password manager, and it
     ignores autocomplete="off" on password fields. A text field shown as dots (see the scss) is not
@@ -54,7 +54,7 @@
   }
 
   <div class="actions">
-    @if (store.token()) {
+    @if (tokens.token()) {
       <button type="button" class="danger" (click)="removeToken()">Remove token</button>
     }
     <span class="spacer"></span>

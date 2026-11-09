@@ -1,4 +1,4 @@
-// The page fills the window; the orders table takes the space under the title.
+// The page fills the window; the toolbar and the orders table share the space under the title.
 .average-price {
   display: flex;
   flex-direction: column;
@@ -10,4 +10,15 @@
   h1 {
     margin: 0 0 1rem;
   }
+}
+
+// The toolbar and the table share one column, as wide as the table, so the toolbar's right edge
+// lines up with the table's right edge.
+.content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: fit-content;
+  max-width: 100%;
 }

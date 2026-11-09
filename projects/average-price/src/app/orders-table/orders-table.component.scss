@@ -8,52 +8,7 @@
   min-height: 0;
 }
 
-// The toolbar and the scrolling table share one column, as wide as the table, so the toolbar's
-// right edge lines up with the table's right edge.
-.table-area {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  width: fit-content;
-  max-width: 100%;
-}
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.status {
-  color: #667085;
-  font-size: 0.9rem;
-
-  &.error {
-    color: #d92d20;
-  }
-}
-
-.save {
-  padding: 0.4rem 1rem;
-  border: 1px solid #1565c0;
-  border-radius: 6px;
-  background: #1565c0;
-  color: #fff;
-
-  &:hover:not(:disabled) {
-    background: #0d47a1;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
-}
-
-// The table component fills the space under the toolbar. Its look comes from CSS variables, and each
+// The table component fills the space in the page. Its look comes from CSS variables, and each
 // column's own width from the column list in the component.
 lib-data-table.orders {
   flex: 1;

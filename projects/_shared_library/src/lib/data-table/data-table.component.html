@@ -1,4 +1,4 @@
-<div class="lib-table-scroll">
+<div class="lib-table-scroll" cdkScrollable>
   <table cdk-table class="lib-table" [dataSource]="rows()" [trackBy]="trackBy()">
     @for (column of columns(); track column.key) {
       <ng-container [cdkColumnDef]="column.key">

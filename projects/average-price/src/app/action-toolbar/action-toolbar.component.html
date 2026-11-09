@@ -1,0 +1,11 @@
+<div class="toolbar">
+  <span class="status" [class.error]="orders.status().error" role="status">{{
+    orders.status().text
+    }}</span>
+  @if (orders.canWrite()) {
+  <button type="button" class="save" [disabled]="orders.saving() || !orders.unsaved()" (click)="orders.save()">
+    Save
+  </button>
+  }
+  <lib-github-settings (connected)="orders.reload()" (disconnected)="orders.reload()" />
+</div>

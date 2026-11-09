@@ -1,13 +1,6 @@
-<div
-  #popover
-  class="popover"
-  role="tooltip"
-  [class.below]="below()"
-  [style.left.px]="left()"
-  [style.top.px]="top()"
->
+<div class="popover" role="tooltip">
   @if (details().title) {
-    <div class="popover-title">{{ details().title }}</div>
+  <div class="popover-title">{{ details().title }}</div>
   }
   <div class="popover-compare">{{ details().comparison }}</div>
   <div class="popover-row">
