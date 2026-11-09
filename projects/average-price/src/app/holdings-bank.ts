@@ -51,8 +51,6 @@ export interface HoldingsVsBank {
   /** What the bank would have paid so far: `bank - invested`. */
   interest: number;
   interestPercent: number;
-  /** How long the money has been in the holdings on average, weighted by amount, in days. */
-  averageDays: number;
   /** How many holdings are counted. */
   holdings: number;
   /** Unsold orders with a buy date but no price or quantity: they cannot be counted. */
@@ -147,7 +145,6 @@ export function compareHoldingsWithBank(
     bank: last.bank,
     interest,
     interestPercent: (interest / last.invested) * 100,
-    averageDays: ((todayDay - first) * invested - weighted) / invested,
     holdings: holdings.length,
     skipped,
   };
