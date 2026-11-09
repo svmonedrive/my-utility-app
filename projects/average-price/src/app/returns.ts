@@ -1,5 +1,5 @@
 import { parseDate } from './date-format';
-import { TradeRow } from './sample-data';
+import { TradeRow } from './trade-row';
 
 /** Yearly return the money would have earned in a bank instead. */
 export const BANK_RATE_PERCENT = 7;

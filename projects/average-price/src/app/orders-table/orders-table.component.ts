@@ -1,11 +1,33 @@
-import { Component, computed, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { formatDate, parseDate, parseIsoDate, toIsoDate } from '../date-format';
+import { GithubSettingsComponent } from '../github-settings/github-settings.component';
 import { formatPriceCell } from '../money';
+import { OrdersStore } from '../orders-store.service';
 import { calcPendingReturns, calcReturns, daysHeld, daysSinceBuy, isSold } from '../returns';
-import { createSampleRows, SYMBOLS, TradeRow, TradeSymbol } from '../sample-data';
+import { OrderRecord, SYMBOLS, toRecord, TradeRow, TradeSymbol } from '../trade-row';
 import { describePending, describeReturns, ReturnDetails } from '../return-popover/return-details';
 import { ReturnPopoverComponent } from '../return-popover/return-popover.component';
+
+/** What a failed save means, in words the owner can act on. */
+function describeSaveError(error: unknown): string {
+  const status = error instanceof HttpErrorResponse ? error.status : -1;
+  if (status === 409 || status === 422) {
+    return 'The data on GitHub changed since you opened this page. Reload the page, then make your change again.';
+  }
+  if (status === 403) {
+    return 'GitHub refused the save: the token can read but not write. In the token settings, choose "Only select repositories" with my-utility-app-data, and set Contents to "Read and write". Then remove and add the token again.';
+  }
+  if (status === 401 || status === 404) {
+    return 'GitHub did not accept the token. It may have expired, or been deleted. Add a new token with the key button.';
+  }
+  if (status === 0) {
+    return 'Could not reach GitHub. Check your connection and try again.';
+  }
+  return 'Saving failed. Try again.';
+}
 
 /** The Symbol filter's "no filtering" choice. */
 const ALL_SYMBOLS = 'All';
@@ -34,7 +56,7 @@ interface PopoverState {
 
 @Component({
   selector: 'app-orders-table',
-  imports: [FormsModule, ReturnPopoverComponent],
+  imports: [FormsModule, GithubSettingsComponent, ReturnPopoverComponent],
   styleUrl: './orders-table.component.scss',
   templateUrl: './orders-table.component.html',
   host: {
@@ -43,9 +65,57 @@ interface PopoverState {
   },
 })
 export class OrdersTableComponent {
-  private nextId = 101;
+  private nextId = 1;
+  protected readonly store = inject(OrdersStore);
 
-  protected readonly rows = signal<TradeRow[]>(createSampleRows(100));
+  /** The orders, loaded from the data repo on GitHub (empty until they have arrived). */
+  protected readonly rows = signal<TradeRow[]>([]);
+
+  /** The orders as last loaded or saved, to tell whether there are unsaved changes. */
+  private readonly savedJson = signal('');
+
+  /**
+   * True when the orders differ from the last loaded or saved copy. It is worked out when the list of
+   * rows changes, e.g. when a row is marked Done, so it does not follow every keystroke.
+   */
+  protected readonly unsaved = computed(
+    () => JSON.stringify(this.rows().map(toRecord)) !== this.savedJson(),
+  );
+
+  protected readonly saving = signal(false);
+
+  /** The result of the last save: shown next to the Save button. */
+  protected readonly saveResult = signal<{ ok: boolean; text: string } | null>(null);
+
+  /** What the line next to the Save button says. */
+  protected readonly status = computed(() => {
+    const result = this.saveResult();
+    if (this.saving()) {
+      return { error: false, text: 'Saving…' };
+    }
+    if (result && !result.ok) {
+      return { error: true, text: result.text };
+    }
+    if (this.store.source() === 'unavailable') {
+      return {
+        error: true,
+        text: 'Server is busy right now. Please try again in a moment.',
+      };
+    }
+    if (this.store.tokenRejected()) {
+      return {
+        error: true,
+        text: 'Your GitHub token is no longer accepted (expired or removed). View only: add a new token with the key button.',
+      };
+    }
+    if (!this.store.canWrite()) {
+      return { error: false, text: 'View only' };
+    }
+    if (this.unsaved()) {
+      return { error: false, text: 'Unsaved changes' };
+    }
+    return { error: false, text: result ? result.text : 'All changes saved' };
+  });
 
   /** When on, only the orders that are not sold yet are listed. */
   protected readonly onlyNotSold = signal(false);
@@ -101,6 +171,44 @@ export class OrdersTableComponent {
     }
     return bars;
   });
+
+  constructor() {
+    this.reload();
+  }
+
+  /** Reads the orders from GitHub (with the token if there is one) and shows them. */
+  protected reload(): void {
+    this.store
+      .load()
+      .pipe(takeUntilDestroyed())
+      .subscribe((orders) => this.showOrders(orders));
+  }
+
+  /** Puts freshly loaded orders on screen; nothing is unsaved at that point. */
+  protected showOrders(orders: OrderRecord[]): void {
+    this.nextId = Math.max(0, ...orders.map((order) => order.id)) + 1;
+    this.rows.set(orders.map((order) => ({ ...order, editing: false })));
+    this.savedJson.set(JSON.stringify(this.rows().map(toRecord)));
+    this.saveResult.set(null);
+  }
+
+  /** Commits the orders to the data repo on GitHub. Only possible with the owner's token. */
+  protected save(): void {
+    const records = this.rows().map(toRecord);
+    this.saving.set(true);
+    this.saveResult.set(null);
+    this.store.save(records).subscribe({
+      next: () => {
+        this.savedJson.set(JSON.stringify(records));
+        this.saving.set(false);
+        this.saveResult.set({ ok: true, text: 'Saved to GitHub' });
+      },
+      error: (error: unknown) => {
+        this.saving.set(false);
+        this.saveResult.set({ ok: false, text: describeSaveError(error) });
+      },
+    });
+  }
 
   /**
    * While there is no sell date: how long the order has been open, e.g. "(34 days over)".
