@@ -12,9 +12,11 @@ export interface GithubFile {
   sha: string;
 }
 
-/** The addresses an app needs for its one data file. */
+/** The addresses needed for one data file. */
 export interface GithubUrls {
-  /** The contents API address of the file: read with a token, and save. */
+  /** The repo itself: used to check that a token is valid. */
+  repo: string;
+  /** The contents API address of the file: read with a token, save, and create. */
   api: string;
   /** Used only to test that a token can write. */
   blobs: string;
@@ -22,12 +24,15 @@ export interface GithubUrls {
   public: string;
 }
 
-export function githubUrls(config: GithubDataConfig): GithubUrls {
+/** The addresses for `file`, a file name inside the app's folder, e.g. `'2026.json'`. */
+export function githubUrls(config: GithubDataConfig, file: string): GithubUrls {
   const repo = `${config.owner}/${config.repo}`;
+  const path = `${config.folder}/${file}`;
   return {
-    api: `https://api.github.com/repos/${repo}/contents/${config.path}`,
+    repo: `https://api.github.com/repos/${repo}`,
+    api: `https://api.github.com/repos/${repo}/contents/${path}`,
     blobs: `https://api.github.com/repos/${repo}/git/blobs`,
-    public: `https://raw.githubusercontent.com/${repo}/${config.branch}/${config.path}`,
+    public: `https://raw.githubusercontent.com/${repo}/${config.branch}/${path}`,
   };
 }
 

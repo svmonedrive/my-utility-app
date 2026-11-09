@@ -1,4 +1,4 @@
-// The page fills the window; the toolbar and the orders table share the space under the title.
+// The page fills the window; the heading row and the orders table share the space.
 .average-price {
   display: flex;
   flex-direction: column;
@@ -6,13 +6,9 @@
   box-sizing: border-box;
   padding: 1rem;
   font-family: system-ui, sans-serif;
-
-  h1 {
-    margin: 0 0 1rem;
-  }
 }
 
-// The toolbar and the table share one column, as wide as the table, so the toolbar's right edge
+// The heading row and the table share one column, as wide as the table, so the toolbar's right edge
 // lines up with the table's right edge.
 .content {
   display: flex;
@@ -21,4 +17,23 @@
   min-height: 0;
   width: fit-content;
   max-width: 100%;
+}
+
+// The heading on the left; the toolbar takes the rest of the row (its year picker sits next to the
+// heading, its status and buttons at the right end). Wraps onto a second line on a narrow screen.
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 0.75rem;
+
+  h1 {
+    margin: 0;
+  }
+
+  app-action-toolbar {
+    flex: 1;
+    min-width: 0;
+  }
 }

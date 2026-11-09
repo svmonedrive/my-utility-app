@@ -1,11 +1,40 @@
 <div class="toolbar">
+  <div class="years">
+    <label for="year">Year</label>
+    <select id="year" [disabled]="!orders.years().length" (change)="onYearChange($event)">
+      @for (year of orders.yearOptions(); track year) {
+        <option [value]="year" [selected]="year === orders.selectedYear()">{{ year }}</option>
+      }
+    </select>
+    @if (orders.canWrite()) {
+      <button
+        type="button"
+        class="create-year"
+        [disabled]="orders.creatingYear() || !orders.canAddYear()"
+        [title]="
+          orders.canAddYear()
+            ? 'Create the file for ' + orders.nextYear()
+            : 'Files can only be created up to next year'
+        "
+        (click)="orders.createNextYear()"
+      >
+        {{ orders.creatingYear() ? 'Creating…' : 'Create ' + orders.nextYear() + ' file' }}
+      </button>
+    }
+  </div>
+
   <span class="status" [class.error]="orders.status().error" role="status">{{
     orders.status().text
-    }}</span>
+  }}</span>
   @if (orders.canWrite()) {
-  <button type="button" class="save" [disabled]="orders.saving() || !orders.unsaved()" (click)="orders.save()">
-    Save
-  </button>
+    <button
+      type="button"
+      class="save"
+      [disabled]="orders.saving() || !orders.unsaved()"
+      (click)="orders.save()"
+    >
+      Save
+    </button>
   }
   <lib-github-settings (connected)="orders.reload()" (disconnected)="orders.reload()" />
 </div>

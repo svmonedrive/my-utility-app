@@ -16,7 +16,7 @@ export const appConfig: ApplicationConfig = {
       owner: 'svmonedrive',
       repo: 'my-utility-app-data',
       branch: 'main',
-      path: 'average-price-app-data/orders.json',
+      folder: 'average-price-app-data',
       commitMessage: 'Update orders from my-utility-app',
     }),
   ],
