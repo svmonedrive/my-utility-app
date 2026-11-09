@@ -23,6 +23,8 @@
     }
   </div>
 
+  <app-orders-filter />
+
   <span class="status" [class.error]="orders.status().error" role="status">{{
     orders.status().text
   }}</span>

@@ -32,8 +32,10 @@
     margin: 0;
   }
 
+  // The basis is wider than what is left beside the heading on a phone, so there the toolbar moves
+  // to its own line instead of squeezing against the heading.
   app-action-toolbar {
-    flex: 1;
+    flex: 1 1 28rem;
     min-width: 0;
   }
 }

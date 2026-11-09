@@ -7,14 +7,14 @@ import {
   GithubReadService,
   GithubTokenService,
 } from '@my-utility/shared';
-import { catchError, of, switchMap, throwError } from 'rxjs';
-import { normalizeDateText } from './date-format';
-import { OrderRecord, SYMBOLS, toRecord, TradeRow } from './trade-row';
+import { catchError, Observable, of, switchMap, tap, throwError } from 'rxjs';
+import { OrderFields, OrderRecord, toRecord, TradeRow } from './trade-row';
 import {
   canAddYear,
   INDEX_FILE,
   nextYearAfter,
   pickYear,
+  symbolsOf,
   yearFile,
   yearsOf,
   YearsIndex,
@@ -36,6 +36,9 @@ export class OrdersService {
 
   /** The years that have a file (from the index), oldest first. */
   readonly years = signal<number[]>([]);
+
+  /** The symbols an order can have, as listed in the index (empty until it has been read). */
+  readonly symbols = signal<string[]>([]);
 
   /** The year whose orders are on screen. Null until the index has been read. */
   readonly selectedYear = signal<number | null>(null);
@@ -117,6 +120,7 @@ export class OrdersService {
           const years = yearsOf(index);
           const year = pickYear(years, new Date().getFullYear(), this.selectedYear());
           this.years.set(years);
+          this.symbols.set(symbolsOf(index));
           this.selectedYear.set(year);
           return year === null
             ? of<OrderRecord[]>([])
@@ -157,7 +161,7 @@ export class OrdersService {
   /** Puts freshly loaded orders on screen; nothing is unsaved at that point. */
   private showOrders(orders: OrderRecord[]): void {
     this.nextId = Math.max(0, ...orders.map((order) => order.id)) + 1;
-    this.rows.set(orders.map((order) => ({ ...order, editing: false })));
+    this.rows.set(orders);
     this.savedJson.set(JSON.stringify(this.rows().map(toRecord)));
     this.saveResult.set(null);
   }
@@ -208,12 +212,7 @@ export class OrdersService {
             ? of(undefined)
             : throwError(() => error),
         ),
-        switchMap(() => {
-          const index: YearsIndex = { years };
-          return this.reader.version(INDEX_FILE)
-            ? this.committer.save(INDEX_FILE, index)
-            : this.committer.create(INDEX_FILE, index);
-        }),
+        switchMap(() => this.writeIndex({ years, symbols: this.symbols() })),
       )
       .subscribe({
         next: () => {
@@ -227,49 +226,41 @@ export class OrdersService {
       });
   }
 
-  /** Shows why a write to GitHub failed, in words the owner can act on. */
-  private failed(error: unknown, done: () => void): void {
-    done();
-    this.saveResult.set({
-      ok: false,
-      text: describeGithubSaveError(error, this.reader.config.repo),
-    });
-  }
-
-  /** Adds an empty order at the top, ready to be filled in. */
-  addOrder(): void {
-    const empty: TradeRow = {
-      id: this.nextId++,
-      editing: true,
-      symbol: SYMBOLS[0],
-      buyDate: '',
-      buyPrice: null,
-      quantity: null,
-      sellDate: '',
-      sellPrice: null,
-    };
-    this.rows.update((rows) => [empty, ...rows]);
-  }
-
-  /** Switches a row between read-only and editable. */
-  toggleEdit(id: number): void {
-    this.rows.update((rows) => rows.map((r) => (r.id === id ? { ...r, editing: !r.editing } : r)));
-  }
-
-  /** Makes a row editable. Unlike `toggleEdit` it does nothing for a row that is already being edited. */
-  startEdit(id: number): void {
-    this.rows.update((rows) =>
-      rows.map((r) => (r.id === id && !r.editing ? { ...r, editing: true } : r)),
+  /** Adds a symbol to the index and saves it. Only possible with the owner's token. The caller shows any error. */
+  addSymbol(name: string): Observable<unknown> {
+    const symbols = [...this.symbols(), name];
+    return this.writeIndex({ years: this.years(), symbols }).pipe(
+      tap(() => this.symbols.set(symbols)),
     );
   }
 
-  /** Finishes editing a row. The typed dates are tidied first, e.g. `5-jan-2026` becomes `05-Jan-2026`. */
-  finishEdit(row: TradeRow): void {
-    // Done here, not left to the fields' blur event: the fields are removed from the page when the
-    // row stops editing, so they may never get one.
-    row.buyDate = normalizeDateText(row.buyDate);
-    row.sellDate = normalizeDateText(row.sellDate);
-    this.rows.update((rows) => rows.map((r) => (r.id === row.id ? { ...r, editing: false } : r)));
+  /** Saves the index file, or creates it if it is not in the data repo yet. */
+  private writeIndex(index: YearsIndex): Observable<unknown> {
+    return this.reader.version(INDEX_FILE)
+      ? this.committer.save(INDEX_FILE, index)
+      : this.committer.create(INDEX_FILE, index);
+  }
+
+  /** Why a write to GitHub failed, in words the owner can act on. */
+  describeError(error: unknown): string {
+    return describeGithubSaveError(error, this.reader.config.repo);
+  }
+
+  /** Shows why a write to GitHub failed, in words the owner can act on. */
+  private failed(error: unknown, done: () => void): void {
+    done();
+    this.saveResult.set({ ok: false, text: this.describeError(error) });
+  }
+
+  /** Adds a new order at the top of the list (not saved to GitHub until Save is pressed). */
+  addOrder(fields: OrderFields): void {
+    const order: TradeRow = { id: this.nextId++, ...fields };
+    this.rows.update((rows) => [order, ...rows]);
+  }
+
+  /** Replaces the details of an existing order. */
+  updateOrder(id: number, fields: OrderFields): void {
+    this.rows.update((rows) => rows.map((r) => (r.id === id ? { id, ...fields } : r)));
   }
 
   deleteRow(id: number): void {

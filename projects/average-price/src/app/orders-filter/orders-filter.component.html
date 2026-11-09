@@ -1,0 +1,45 @@
+<div class="filters">
+  <select
+    id="symbol-filter"
+    name="symbolFilter"
+    aria-label="Filter by symbol"
+    title="Filter by symbol"
+    [class.active]="filter.symbol() !== allSymbols"
+    [ngModel]="filter.symbol()"
+    (ngModelChange)="filter.symbol.set($event)"
+  >
+    <option [value]="allSymbols">All symbols</option>
+    @for (symbol of orders.symbols(); track symbol) {
+      <option [value]="symbol">{{ symbol }}</option>
+    }
+  </select>
+
+  <select
+    id="month-filter"
+    name="monthFilter"
+    aria-label="Filter by month"
+    title="Show only the orders bought in this month"
+    [class.active]="filter.month() !== null"
+    [ngModel]="filter.month() === null ? '' : filter.month()"
+    (ngModelChange)="setMonth($event)"
+  >
+    <option value="">All months</option>
+    @for (month of months; track month.value) {
+      <option [value]="month.value">{{ month.label }}</option>
+    }
+  </select>
+
+  <button
+    type="button"
+    class="holding"
+    [class.active]="filter.onlyNotSold()"
+    [attr.aria-pressed]="filter.onlyNotSold()"
+    title="Holding: show only the orders not sold yet"
+    (click)="toggleHolding()"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 5h16l-6 7v6l-4 2v-8L4 5z" />
+    </svg>
+    Holding
+  </button>
+</div>

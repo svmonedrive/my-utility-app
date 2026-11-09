@@ -1,35 +1,26 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Dialog } from '@angular/cdk/dialog';
+import { Component, computed, inject } from '@angular/core';
 import {
   DataTableComponent,
   LibTdActionDirective,
   LibTdDirective,
   LibThActionDirective,
-  LibThDirective,
   PopoverService,
-  RowEvent,
 } from '@my-utility/shared';
-import { formatDate, normalizeDateText, parseDate, parseIsoDate, toIsoDate } from '../date-format';
 import { formatPriceCell } from '../money';
+import { OrdersFilterService } from '../orders-filter/orders-filter.service';
+import { OrderDialogComponent, OrderDialogData } from '../order-dialog/order-dialog.component';
 import { OrdersService } from '../orders.service';
-import { SYMBOLS, TradeRow } from '../trade-row';
+import { OrderFields, TradeRow } from '../trade-row';
 import { ReturnDetails } from '../return-popover/return-details';
 import { ReturnPopoverComponent } from '../return-popover/return-popover.component';
-import {
-  ALL_SYMBOLS,
-  DOUBLE_TAP_MS,
-  ORDERS_COLUMNS,
-  ReturnBar,
-  SymbolFilter,
-} from './orders-table';
+import { DOUBLE_TAP_MS, ORDERS_COLUMNS, ReturnBar } from './orders-table';
 import { OrdersTableHelper } from './orders-table.helper';
 
 @Component({
   selector: 'app-orders-table',
   imports: [
-    FormsModule,
     DataTableComponent,
-    LibThDirective,
     LibTdDirective,
     LibThActionDirective,
     LibTdActionDirective,
@@ -43,31 +34,25 @@ import { OrdersTableHelper } from './orders-table.helper';
 })
 export class OrdersTableComponent {
   protected readonly orders = inject(OrdersService);
+  private readonly filter = inject(OrdersFilterService);
   private readonly popovers = inject(PopoverService);
+  private readonly dialog = inject(Dialog);
 
   // What the template uses from the meta file (`orders-table.ts`), the helper class and elsewhere.
   protected readonly columns = ORDERS_COLUMNS;
   protected readonly trackById = OrdersTableHelper.trackById;
   protected readonly rowStyle = OrdersTableHelper.monthRowStyle;
   protected readonly daysHeldText = OrdersTableHelper.daysHeldText;
-  protected readonly isInvalidDate = OrdersTableHelper.isInvalidDate;
   protected readonly priceCell = formatPriceCell;
-  protected readonly symbols = SYMBOLS;
-  protected readonly allSymbols = ALL_SYMBOLS;
 
-  /** When on, only the orders that are not sold yet are listed. */
-  protected readonly onlyNotSold = signal(false);
-
-  /** The Symbol filter in the column header: one symbol, or `All` for no filtering. */
-  protected readonly symbolFilter = signal<SymbolFilter>(ALL_SYMBOLS);
-
-  /**
-   * The rows to list: the "Holding" filter and the Symbol filter both apply. Recomputed when the rows
-   * list changes, so a row being edited stays in the list until it is marked Done, even if it just
-   * got a sell price or a different symbol.
-   */
+  /** The rows to list: the filters of the toolbar (symbol, month and "Holding") all apply. */
   protected readonly visibleRows = computed(() =>
-    OrdersTableHelper.filterOrders(this.orders.rows(), this.symbolFilter(), this.onlyNotSold()),
+    OrdersTableHelper.filterOrders(
+      this.orders.rows(),
+      this.filter.symbol(),
+      this.filter.month(),
+      this.filter.onlyNotSold(),
+    ),
   );
 
   /** Recomputed when the rows list changes, e.g. when a row is marked Done. */
@@ -98,50 +83,31 @@ export class OrdersTableComponent {
     }
   }
 
-  protected toggleNotSoldFilter(): void {
-    this.onlyNotSold.update((on) => !on);
-  }
-
-  protected onRowKeyDown({ event, row }: RowEvent<TradeRow, KeyboardEvent>): void {
-    if (event.key === 'Enter') {
-      this.onRowEnter(event, row);
-    }
-  }
-
-  /** Enter in any field of the row being edited finishes the edit, like the check mark button. */
-  protected onRowEnter(event: Event, row: TradeRow): void {
-    if (!row.editing || !(event.target as Element).closest('input')) {
-      return;
-    }
-    this.orders.finishEdit(row);
-  }
-
   /**
-   * Stops a double click on a read-only row from selecting the word under the cursor. Single clicks
-   * must be left alone: cancelling them would stop inputs from getting focus.
-   * (A method, not an inline `a && b && preventDefault()`: Angular cancels the event when a handler
-   * expression evaluates to `false`.)
+   * Stops a double click on a row from selecting the word under the cursor. Single clicks must be
+   * left alone. (A method, not an inline `a && preventDefault()`: Angular cancels the event when a
+   * handler expression evaluates to `false`.)
    */
-  protected onRowMouseDown(event: MouseEvent, editing: boolean): void {
-    if (event.detail > 1 && !editing) {
+  protected onRowMouseDown(event: MouseEvent): void {
+    if (event.detail > 1) {
       event.preventDefault();
     }
   }
 
-  /** Double-click on a row (mouse) makes it editable. Clicks on buttons and inputs are left alone. */
-  protected onRowDoubleClick(event: Event, id: number): void {
+  /** Double-click on a row (mouse) opens the order form. Clicks on buttons are left alone. */
+  protected onRowDoubleClick(event: Event, row: TradeRow): void {
     if (!(event.target as Element).closest('button, input, select')) {
-      this.orders.startEdit(id);
+      this.openOrder(row);
     }
   }
 
   private lastTap: { id: number; time: number } | null = null;
 
   /**
-   * Double-tap on a row (touch) makes it editable. Detected by hand because browsers differ on
+   * Double-tap on a row (touch) opens the order form. Detected by hand because browsers differ on
    * `dblclick` for touch (iOS Safari does not fire it, and a double tap normally zooms).
    */
-  protected onRowPointerUp(event: PointerEvent, id: number): void {
+  protected onRowPointerUp(event: PointerEvent, row: TradeRow): void {
     if (
       event.pointerType !== 'touch' ||
       (event.target as Element).closest('button, input, select')
@@ -149,34 +115,35 @@ export class OrdersTableComponent {
       return;
     }
     const now = Date.now();
-    if (this.lastTap?.id === id && now - this.lastTap.time < DOUBLE_TAP_MS) {
+    if (this.lastTap?.id === row.id && now - this.lastTap.time < DOUBLE_TAP_MS) {
       this.lastTap = null;
-      this.orders.startEdit(id);
+      this.openOrder(row);
     } else {
-      this.lastTap = { id, time: now };
+      this.lastTap = { id: row.id, time: now };
     }
   }
 
-  protected normalizeDate(row: TradeRow, field: 'buyDate' | 'sellDate'): void {
-    row[field] = normalizeDateText(row[field]);
-  }
-
-  /** Opens the browser's calendar, starting on the date typed so far. `picker` is the hidden date input. */
-  protected openCalendar(picker: HTMLInputElement, text: string): void {
-    const date = parseDate(text);
-    picker.value = date ? toIsoDate(date) : '';
-    try {
-      picker.showPicker();
-    } catch {
-      // Not supported by this browser; the date can still be typed.
+  /** Opens the order form: for a new order (`row` null) or to change `row`. The table changes only on Save. */
+  protected openOrder(row: TradeRow | null): void {
+    if (this.dialog.openDialogs.length) {
+      return;
     }
-  }
-
-  /** Writes the date chosen in the calendar back into the row, as dd-MMM-yyyy. */
-  protected pickDate(row: TradeRow, field: 'buyDate' | 'sellDate', picker: HTMLInputElement): void {
-    const date = parseIsoDate(picker.value);
-    if (date) {
-      row[field] = formatDate(date);
-    }
+    this.hidePopover();
+    const ref = this.dialog.open<OrderFields | undefined, OrderDialogData>(OrderDialogComponent, {
+      data: { order: row },
+      width: 'min(32rem, calc(100vw - 1rem))',
+      maxWidth: '100vw',
+      ariaLabel: row ? 'Edit order' : 'Add order',
+    });
+    ref.closed.subscribe((fields) => {
+      if (!fields) {
+        return;
+      }
+      if (row) {
+        this.orders.updateOrder(row.id, fields);
+      } else {
+        this.orders.addOrder(fields);
+      }
+    });
   }
 }

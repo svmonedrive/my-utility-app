@@ -3,11 +3,28 @@
 
 import { DataTableColumn } from '@my-utility/shared';
 import { ReturnDetails } from '../return-popover/return-details';
-import { TradeRow, TradeSymbol } from '../trade-row';
+import { TradeRow } from '../trade-row';
 
 /** The Symbol filter's "no filtering" choice. */
 export const ALL_SYMBOLS = 'All';
-export type SymbolFilter = typeof ALL_SYMBOLS | TradeSymbol;
+/** One symbol, or `ALL_SYMBOLS`. */
+export type SymbolFilter = string;
+
+/** The Month filter's choices: the month number (0 = January) and its name. */
+export const MONTH_OPTIONS: readonly { value: number; label: string }[] = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+].map((label, value) => ({ value, label }));
 
 /** Two taps on the same row within this many milliseconds count as a double tap. */
 export const DOUBLE_TAP_MS = 350;

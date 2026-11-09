@@ -1,0 +1,87 @@
+<!--
+  Movable: dragging the title moves the whole dialog pane (the CDK overlay panel), kept inside the page.
+-->
+<form class="form" novalidate cdkDrag cdkDragRootElement=".cdk-overlay-pane" cdkDragBoundary=".cdk-overlay-container"
+  (ngSubmit)="save()">
+  <h2 cdkDragHandle title="Drag to move">{{ isNew ? 'Add order' : 'Edit order' }}</h2>
+
+  <div class="field wide">
+    <label for="order-symbol">Symbol</label>
+    <div class="symbol-row">
+      <select id="order-symbol" name="symbol" [(ngModel)]="symbol">
+        @for (name of symbolOptions(); track name) {
+        <option [value]="name">{{ name }}</option>
+        }
+      </select>
+      @if (orders.canWrite() && !addingSymbol()) {
+      <button type="button" class="secondary" title="Add a new symbol" (click)="showNewSymbol()">
+        Add
+      </button>
+      }
+    </div>
+    @if (addingSymbol()) {
+    <div class="symbol-row new-symbol">
+      <input type="text" name="newSymbol" aria-label="New symbol" placeholder="New symbol" autocomplete="off"
+        spellcheck="false" [maxLength]="maxSymbolLength" [(ngModel)]="newSymbol"
+        (keydown.enter)="onNewSymbolEnter($event)" (keydown.escape)="cancelNewSymbol($event)" />
+      <button type="button" class="primary" [disabled]="savingSymbol()" (click)="saveNewSymbol()">
+        {{ savingSymbol() ? 'Saving…' : 'Save' }}
+      </button>
+      <button type="button" class="secondary" (click)="cancelNewSymbol()">Cancel</button>
+    </div>
+    @if (symbolError()) {
+    <p class="error" role="alert">{{ symbolError() }}</p>
+    } @else {
+    <p class="hint">A new symbol is saved right away, for everybody.</p>
+    }
+    }
+  </div>
+
+  <div class="field">
+    <label for="order-buy-date">Buy date</label>
+    <div class="date-field">
+      <input id="order-buy-date" type="text" name="buyDate" placeholder="dd-MMM-yyyy" autocomplete="off"
+        [(ngModel)]="buyDate" [class.invalid]="isInvalidDate(buyDate)" (click)="openCalendar(buyPicker, buyDate)"
+        (blur)="normalizeDate('buyDate')" />
+      <input #buyPicker type="date" class="native-date" tabindex="-1" aria-hidden="true"
+        (change)="pickDate('buyDate', buyPicker)" />
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="order-buy-price">Buy price (Rs. per item)</label>
+    <input id="order-buy-price" type="number" name="buyPrice" step="any" [(ngModel)]="buyPrice" />
+  </div>
+
+  <div class="field">
+    <label for="order-quantity">Quantity</label>
+    <input id="order-quantity" type="number" name="quantity" step="any" [(ngModel)]="quantity" />
+  </div>
+
+  <p class="hint wide">Leave the sell date and price empty while the order is not sold yet.</p>
+
+  <div class="field">
+    <label for="order-sell-date">Sell date</label>
+    <div class="date-field">
+      <input id="order-sell-date" type="text" name="sellDate" placeholder="dd-MMM-yyyy" autocomplete="off"
+        [(ngModel)]="sellDate" [class.invalid]="isInvalidDate(sellDate)" (click)="openCalendar(sellPicker, sellDate)"
+        (blur)="normalizeDate('sellDate')" />
+      <input #sellPicker type="date" class="native-date" tabindex="-1" aria-hidden="true"
+        (change)="pickDate('sellDate', sellPicker)" />
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="order-sell-price">Sell price (Rs. per item)</label>
+    <input id="order-sell-price" type="number" name="sellPrice" step="any" [(ngModel)]="sellPrice" />
+  </div>
+
+  @if (error()) {
+  <p class="error wide" role="alert">{{ error() }}</p>
+  }
+
+  <div class="actions wide">
+    <button type="button" class="secondary" (click)="cancel()">Cancel</button>
+    <button type="submit" class="primary">Save</button>
+  </div>
+</form>

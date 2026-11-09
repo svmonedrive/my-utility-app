@@ -25,14 +25,21 @@ export class OrdersTableHelper {
     return date ? { background: `hsl(${(date.getMonth() * 150) % 360}, 75%, 86%)` } : null;
   }
 
-  /** The rows the two header filters let through: the chosen symbol, and optionally only unsold orders. */
+  /**
+   * The rows the filters let through: the chosen symbol, the chosen month of the buy date (0 = January;
+   * null for every month) and optionally only unsold orders.
+   */
   static filterOrders(
     rows: readonly TradeRow[],
     symbol: SymbolFilter,
+    month: number | null,
     onlyNotSold: boolean,
   ): TradeRow[] {
     return rows.filter(
-      (row) => (symbol === ALL_SYMBOLS || row.symbol === symbol) && (!onlyNotSold || !isSold(row)),
+      (row) =>
+        (symbol === ALL_SYMBOLS || row.symbol === symbol) &&
+        (month === null || parseDate(row.buyDate)?.getMonth() === month) &&
+        (!onlyNotSold || !isSold(row)),
     );
   }
 
