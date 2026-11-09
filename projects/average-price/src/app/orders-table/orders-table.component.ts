@@ -1,33 +1,24 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import {
+  DataTableColumn,
+  DataTableComponent,
+  describeGithubSaveError,
+  GithubDataStore,
+  GithubSettingsComponent,
+  LibTdActionDirective,
+  LibTdDirective,
+  LibThActionDirective,
+  LibThDirective,
+  RowEvent,
+} from '@my-utility/shared';
 import { formatDate, parseDate, parseIsoDate, toIsoDate } from '../date-format';
-import { GithubSettingsComponent } from '../github-settings/github-settings.component';
 import { formatPriceCell } from '../money';
-import { OrdersStore } from '../orders-store.service';
 import { calcPendingReturns, calcReturns, daysHeld, daysSinceBuy, isSold } from '../returns';
 import { OrderRecord, SYMBOLS, toRecord, TradeRow, TradeSymbol } from '../trade-row';
 import { describePending, describeReturns, ReturnDetails } from '../return-popover/return-details';
 import { ReturnPopoverComponent } from '../return-popover/return-popover.component';
-
-/** What a failed save means, in words the owner can act on. */
-function describeSaveError(error: unknown): string {
-  const status = error instanceof HttpErrorResponse ? error.status : -1;
-  if (status === 409 || status === 422) {
-    return 'The data on GitHub changed since you opened this page. Reload the page, then make your change again.';
-  }
-  if (status === 403) {
-    return 'GitHub refused the save: the token can read but not write. In the token settings, choose "Only select repositories" with my-utility-app-data, and set Contents to "Read and write". Then remove and add the token again.';
-  }
-  if (status === 401 || status === 404) {
-    return 'GitHub did not accept the token. It may have expired, or been deleted. Add a new token with the key button.';
-  }
-  if (status === 0) {
-    return 'Could not reach GitHub. Check your connection and try again.';
-  }
-  return 'Saving failed. Try again.';
-}
 
 /** The Symbol filter's "no filtering" choice. */
 const ALL_SYMBOLS = 'All';
@@ -56,7 +47,16 @@ interface PopoverState {
 
 @Component({
   selector: 'app-orders-table',
-  imports: [FormsModule, GithubSettingsComponent, ReturnPopoverComponent],
+  imports: [
+    FormsModule,
+    GithubSettingsComponent,
+    ReturnPopoverComponent,
+    DataTableComponent,
+    LibThDirective,
+    LibTdDirective,
+    LibThActionDirective,
+    LibTdActionDirective,
+  ],
   styleUrl: './orders-table.component.scss',
   templateUrl: './orders-table.component.html',
   host: {
@@ -66,7 +66,7 @@ interface PopoverState {
 })
 export class OrdersTableComponent {
   private nextId = 1;
-  protected readonly store = inject(OrdersStore);
+  protected readonly store = inject(GithubDataStore);
 
   /** The orders, loaded from the data repo on GitHub (empty until they have arrived). */
   protected readonly rows = signal<TradeRow[]>([]);
@@ -135,6 +135,20 @@ export class OrdersTableComponent {
       (row) => (symbol === ALL_SYMBOLS || row.symbol === symbol) && (!onlyNotSold || !isSold(row)),
     );
   });
+  /** The columns of the table. Their cells are drawn by the `libTd` templates in the template. */
+  protected readonly columns: DataTableColumn<TradeRow>[] = [
+    { key: 'symbol', header: 'Symbol', minWidth: '10.5rem' },
+    { key: 'buyDate', header: 'Buy date' },
+    { key: 'buyPrice', header: 'Price', minWidth: '12rem', nowrap: true },
+    { key: 'quantity', header: 'Quantity' },
+    { key: 'sellDate', header: 'Sell date', minWidth: '10rem', nowrap: true },
+    { key: 'sellPrice', header: 'Price', minWidth: '12rem', nowrap: true },
+    { key: 'statistics', header: 'Statistics' },
+  ];
+
+  /** Keeps a row's cells (and what is typed in them) when the list of rows changes. */
+  protected readonly trackById = (_index: number, row: TradeRow): number => row.id;
+
   protected readonly priceCell = formatPriceCell;
   protected readonly symbols = SYMBOLS;
   protected readonly allSymbols = ALL_SYMBOLS;
@@ -179,7 +193,7 @@ export class OrdersTableComponent {
   /** Reads the orders from GitHub (with the token if there is one) and shows them. */
   protected reload(): void {
     this.store
-      .load()
+      .load<OrderRecord[]>([])
       .pipe(takeUntilDestroyed())
       .subscribe((orders) => this.showOrders(orders));
   }
@@ -205,7 +219,10 @@ export class OrdersTableComponent {
       },
       error: (error: unknown) => {
         this.saving.set(false);
-        this.saveResult.set({ ok: false, text: describeSaveError(error) });
+        this.saveResult.set({
+          ok: false,
+          text: describeGithubSaveError(error, this.store.config.repo),
+        });
       },
     });
   }
@@ -278,6 +295,12 @@ export class OrdersTableComponent {
     this.rows.update((rows) =>
       rows.map((r) => (r.id === id && !r.editing ? { ...r, editing: true } : r)),
     );
+  }
+
+  protected onRowKeyDown({ event, row }: RowEvent<TradeRow, KeyboardEvent>): void {
+    if (event.key === 'Enter') {
+      this.onRowEnter(event, row);
+    }
   }
 
   /** Enter in any field of the row being edited finishes the edit, like the check mark button. */
@@ -359,11 +382,15 @@ export class OrdersTableComponent {
     }
   }
 
-  /** CSS class for the row background, one per calendar month of the buy date (month-0 = Jan). */
-  protected monthClass(buyDate: string): string {
-    const date = parseDate(buyDate);
-    return date ? `month-${date.getMonth()}` : '';
-  }
+  /**
+   * Row background: a light colour per calendar month of the buy date. Each month is 150deg around the
+   * colour wheel from the previous one, so neighbouring months never look alike (Dec to Jan included).
+   * No buy date yet, no colour.
+   */
+  protected readonly rowStyle = (row: TradeRow): Record<string, string> | null => {
+    const date = parseDate(row.buyDate);
+    return date ? { background: `hsl(${(date.getMonth() * 150) % 360}, 75%, 86%)` } : null;
+  };
 
   protected isInvalidDate(text: string): boolean {
     return text.trim() !== '' && parseDate(text) === null;

@@ -53,60 +53,15 @@
   }
 }
 
-.table-scroll {
+// The table component fills the space under the toolbar. Its look comes from CSS variables, and each
+// column's own width from the column list in the component.
+lib-data-table.orders {
   flex: 1;
   min-height: 0;
-  overflow: auto;
-}
-
-// Separate borders (not collapsed) so the sticky header keeps its borders while scrolling.
-table {
-  width: fit-content;
-  border-collapse: separate;
-  border-spacing: 0;
+  // Data columns are always as wide as an input, so the table does not resize when a row enters edit mode.
+  --lib-table-column-min-width: 9rem;
   // A double tap edits a row, so it must not also zoom the page.
   touch-action: manipulation;
-}
-
-th,
-td {
-  padding: 0.6rem 0.8rem;
-  border: solid #d0d5dd;
-  border-width: 0 1px 1px 0;
-  text-align: left;
-}
-
-tr > :first-child {
-  border-left-width: 1px;
-}
-
-th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  border-top-width: 1px;
-  background: #f2f4f7;
-}
-
-// A light background per calendar month (Jan to Dec) of the buy date. Each month is 150deg around the
-// colour wheel from the previous one, so neighbouring months never look alike (Dec to Jan included).
-@for $i from 0 through 11 {
-  tbody tr.month-#{$i} {
-    background: hsl(($i * 150) % 360, 75%, 86%);
-  }
-}
-
-// Data columns are always as wide as an input, so the table does not resize when a row enters edit mode.
-th:not(.actions),
-td:not(.actions) {
-  min-width: 9rem;
-}
-
-// Room for the "Symbol" label with its filter dropdown beside it, so the column does not change
-// width when a row is edited.
-th.symbol,
-td.symbol {
-  min-width: 10.5rem;
 }
 
 select {
@@ -138,14 +93,6 @@ select.symbol-filter {
   }
 }
 
-// Price columns show the total with the price per item under it; the edit-mode inputs fill the same
-// width, so the table still does not resize when a row is edited.
-th.price,
-td.price {
-  min-width: 12rem;
-  white-space: nowrap;
-}
-
 // The small grey notes: "(Rs. 100/per item)" under a total, and the days notes in the sell date
 // cell. They share one slightly smaller size, so the main values stand out.
 .per-item,
@@ -159,24 +106,11 @@ td.price {
   margin-top: 0.1rem;
 }
 
-// Room for "(100 days over)" in an empty sell date cell, so the column does not change width when a
-// row is edited.
-th.sell-date,
-td.sell-date {
-  min-width: 10rem;
-  white-space: nowrap;
-}
-
 // Italic, for the notes in the sell date cell: "(x days over)" while not sold (instead of the date),
 // and "(23 days)" held under the date once sold. Colour and size are set with the other notes above.
 .days-over,
 .days-held {
   font-style: italic;
-}
-
-.actions {
-  white-space: nowrap;
-  text-align: center;
 }
 
 button {
@@ -320,7 +254,13 @@ input.invalid {
   }
 }
 
+// Covers the whole Statistics cell, padding included, so hovering or tapping anywhere in the cell
+// opens the popover. The table's cell padding is read from the same variables the table uses.
 .statistics {
+  --block: var(--lib-table-cell-padding-block, 0.6rem);
+  --inline: var(--lib-table-cell-padding-inline, 0.8rem);
+  margin: calc(var(--block) * -1) calc(var(--inline) * -1);
+  padding: var(--block) var(--inline);
   cursor: default;
 }
 
